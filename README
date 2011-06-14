@@ -23,9 +23,7 @@ Models:
 	from tootwi.connections import urllib2Connection
 
 	connection = urllib2Connection()
-	credentials = OAuthAccessCredentials(
-			'vvp8yXv5zus4gttWflFWCA', '40ehdqH7BFgyvYwUvEAd5Guxj8eISYqOTMkiV5jwE',
-			'313826855-5gn5dNTNgjPyQRRGEmBFMVSKtMBh41CcyHVkcK0J','tu4ZV6xCKtbttiz01loY5Byp34KjOjbBsnG4WeOg')
+	credentials = OAuthAccessCredentials('...', '...', '...', '...')
 	api = API(credentials, connection)
 
 	user = Account(api).verify_credentials()
@@ -47,9 +45,7 @@ Streams:
 	from tootwi.connections import urllib2Connection
 
 	connection = urllib2Connection()
-	credentials = OAuthAccessCredentials(
-			'vvp8yXv5zus4gttWflFWCA', '40ehdqH7BFgyvYwUvEAd5Guxj8eISYqOTMkiV5jwE',
-			'313826855-5gn5dNTNgjPyQRRGEmBFMVSKtMBh41CcyHVkcK0J','tu4ZV6xCKtbttiz01loY5Byp34KjOjbBsnG4WeOg')
+	credentials = OAuthAccessCredentials('...', '...', '...', '...')
 	api = API(credentials, connection)
 
 	for item in FilterStream(api, MessageFactory(), follow=[16132160,313826855]):
