@@ -1,0 +1,76 @@
+= ABOUT =
+
+TooTwi is a python library for Twitter API, intended to be truly object-oriented, extendible and fast.
+
+
+= FEATURES =
+
+* Streams s iterators.
+* OAuth and basic auth (still allowed in streams).
+* A lot of properly designed data models with mutual relations.
+* Easyness of inheritance and enhancement.
+
+
+= CODE SAMPLES = 
+
+Working code samples are in test-models.py and test-stream.py.
+
+Models:
+
+	from tootwi import API
+	from tootwi.models import Status, User, PublicTimeline, Account
+	from tootwi.credentials import OAuthConsumerCredentials, OAuthAccessCredentials
+	from tootwi.connections import urllib2Connection
+
+	connection = urllib2Connection()
+	credentials = OAuthAccessCredentials(
+			'vvp8yXv5zus4gttWflFWCA', '40ehdqH7BFgyvYwUvEAd5Guxj8eISYqOTMkiV5jwE',
+			'313826855-5gn5dNTNgjPyQRRGEmBFMVSKtMBh41CcyHVkcK0J','tu4ZV6xCKtbttiz01loY5Byp34KjOjbBsnG4WeOg')
+	api = API(credentials, connection)
+
+	user = Account(api).verify_credentials()
+	print(user)
+
+	timeline = PublicTimeline(api)
+	print(timeline[0])
+	for status in timeline: print(status)
+
+	Status(api, text='hello world at %s' % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")).update()
+	Status(api, text='bye world at %s'   % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")).update()
+
+
+Streams:
+
+	from tootwi import API
+	from tootwi.streams import SampleStream, FilterStream, MessageFactory
+	from tootwi.credentials import OAuthConsumerCredentials, OAuthAccessCredentials
+	from tootwi.connections import urllib2Connection
+
+	connection = urllib2Connection()
+	credentials = OAuthAccessCredentials(
+			'vvp8yXv5zus4gttWflFWCA', '40ehdqH7BFgyvYwUvEAd5Guxj8eISYqOTMkiV5jwE',
+			'313826855-5gn5dNTNgjPyQRRGEmBFMVSKtMBh41CcyHVkcK0J','tu4ZV6xCKtbttiz01loY5Byp34KjOjbBsnG4WeOg')
+	api = API(credentials, connection)
+
+	for item in FilterStream(api, MessageFactory(), follow=[16132160,313826855]):
+		print(item)
+
+	for item in SampleStream(api, MessageFactory()):
+		print(item)
+
+
+
+= HISTORY AND STATUS =
+
+This library is a byproduct of a few experiments with Twitter API and streams.
+There is a library with even more features and API coverage: "tweepy" (http://tweepy.github.com/).
+At the moment of the experiments it has been moving to another repository, thus poorly searchable.
+And it is still completely not documented unless you read its code. No wonder why I've missed it.
+I have no intentions to continue this library development unless there will be public interest.
+
+
+= CREDENTIALS IN THE CODE =
+
+Sensitive credentials in the code are of a test account and a test app.
+And they are intentionally not removed to make prototyping easier.
+Probably they are already deleted to the moment you read it.
