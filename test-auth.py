@@ -1,9 +1,7 @@
 import datetime
 from tootwi import API
-from tootwi.models import Status, User, PublicTimeline, Account
-from tootwi.throttlers import TimedThrottler, LatestGroupThrottler, SoonestGroupThrottler
-from tootwi.credentials import OAuthCredentials, OAuthConsumerCredentials, OAuthAccessCredentials, OAuthRequestCredentials
-from tootwi.connections import urllib2Connection
+from tootwi.models import Account
+from tootwi.credentials import OAuthConsumerCredentials, OAuthAccessCredentials, OAuthRequestCredentials
 from settings import CONSUMER_KEY, CONSUMER_SECRET
 
 def main():
@@ -11,10 +9,9 @@ def main():
     #
     # Stage 1 of 3: make request and gain temporary credentials.
     #
-    connection = urllib2Connection()
     credentials = OAuthConsumerCredentials(
                     CONSUMER_KEY, CONSUMER_SECRET)
-    api = API(credentials, connection)
+    api = API(credentials)
     r = api.request()
     print(r)
     
@@ -31,7 +28,7 @@ def main():
     credentials = OAuthRequestCredentials(
                     CONSUMER_KEY, CONSUMER_SECRET,
                     r[1], r[2])
-    api = API(credentials, connection)
+    api = API(credentials)
     v = api.verify(pin)
     print(v)
     
@@ -41,7 +38,7 @@ def main():
     credentials = OAuthAccessCredentials(
                     CONSUMER_KEY, CONSUMER_SECRET,
                     v[0], v[1])
-    api = API(credentials, connection)
+    api = API(credentials)
     u = Account(api).verify_credentials()
     print(u)
     
