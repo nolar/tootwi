@@ -4,12 +4,12 @@ from tootwi.models import Status, User, PublicTimeline, Account
 from tootwi.throttlers import TimedThrottler, LatestGroupThrottler, SoonestGroupThrottler
 from tootwi.credentials import OAuthCredentials, OAuthConsumerCredentials, OAuthAccessCredentials
 from tootwi.connections import urllib2Connection
+from settings import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET
 
 def main():
     connection = urllib2Connection()
     credentials = OAuthAccessCredentials(#OAuthConsumerCredentials(
-            'vvp8yXv5zus4gttWflFWCA', '40ehdqH7BFgyvYwUvEAd5Guxj8eISYqOTMkiV5jwE',
-            '313826855-5gn5dNTNgjPyQRRGEmBFMVSKtMBh41CcyHVkcK0J','tu4ZV6xCKtbttiz01loY5Byp34KjOjbBsnG4WeOg')
+                    CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET)
     #throttler = SoonestGroupThrottler([TimedThrottler(.1), TimedThrottler(.2)])
     api = API(credentials, connection)
 
