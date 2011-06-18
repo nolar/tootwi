@@ -21,6 +21,7 @@ There is no need to inherit this class, since it is sufficient. Though you still
 
 import contextlib
 import json
+from .connections import DEFAULT_CONNECTION
 
 #??? move serialization to the separate classes (serializers.py?): JsonSerializer, XmlSerializer, RssSerializer, etc
 
@@ -41,7 +42,7 @@ class API(object):
     # Can be overridden per API instance with a constructor argument. See there for more info.
     DEFAULT_API_BASE = 'http://api.twitter.com/1/'
 
-    def __init__(self, credentials, connection, throttler = None, headers = None, api_base=None):
+    def __init__(self, credentials, connection=None, throttler = None, headers = None, api_base=None):
         """
         * credentials are required.
         * connection is required. what_about_default???
@@ -57,8 +58,8 @@ class API(object):
 
         super(API, self).__init__()
         self.credentials = credentials
-        self.connection = connection
-        self.throttler = throttler
+        self.connection = connection if connection is not None else DEFAULT_CONNECTION
+        self.throttler = throttler # ??? default throttler?
         self.api_base = api_base if api_base is not None else self.DEFAULT_API_BASE
         self.headers = headers if headers is not None else {}
 

@@ -104,4 +104,4 @@ class httplibConnection(Connection):
 # Automatically detect whcih connection to use as a default.
 #??? is it stil used? or has connection became required parameter in API class?
 #
-DefaultConnection = urllib2Connection
+DEFAULT_CONNECTION = urllib2Connection()
