@@ -1,17 +1,15 @@
 import datetime
 from tootwi import API
 from tootwi.models import Status, User, PublicTimeline, Account
-from tootwi.throttlers import TimedThrottler, LatestGroupThrottler, SoonestGroupThrottler
-from tootwi.credentials import OAuthCredentials, OAuthConsumerCredentials, OAuthAccessCredentials
-from tootwi.connections import urllib2Connection
+from tootwi.throttlers import TimedThrottler
+from tootwi.credentials import OAuthConsumerCredentials, OAuthAccessCredentials
 from settings import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET
 
 def main():
-    connection = urllib2Connection()
     credentials = OAuthAccessCredentials(#OAuthConsumerCredentials(
                     CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET)
     #throttler = SoonestGroupThrottler([TimedThrottler(.1), TimedThrottler(.2)])
-    api = API(credentials, connection)
+    api = API(credentials)
 
     #for item in api.flow(api.FILTER_STREAM, dict(follow='16132160,313826855')):
     #   print(item)
