@@ -10,7 +10,7 @@ class Decoder(dict):
     def decode(self, data):
         raise NotImplemented()
 
-def JsonDecoder(Decoder):
+class JsonDecoder(Decoder):
     extension = '.json'
     
     def decode(self, data):
@@ -19,14 +19,13 @@ def JsonDecoder(Decoder):
         return json.loads(data, 'utf8') if data.strip() else {}
 
 # application/x-www-form-urlencoded
-def FormDecoder(Decoder):
+class FormDecoder(Decoder):
     extension = ''
     
     def decode(self, data):
         assert isinstance(data, basestring)
-        import urllib.parse
-        
-        return urllib.parse.parse_qs(data, keep_blank_values=True, strict_parsing=True)
+        import urlparse
+        return dict(urlparse.parse_qsl(data, keep_blank_values=True, strict_parsing=True))
 
 #todo XmlDecoder
 #todo RssDecoder

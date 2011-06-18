@@ -126,6 +126,7 @@ class API(object):
         # Make parameters and headers to be dictionary, prepopulate if necessary.
         # Headers can also be prepopulated in the constructor if we'll wish so.
         parameters = dict(parameters) if parameters is not None else {}
+        parameters = dict([(k,v) for k,v in parameters.items() if v is not None])
         headers = dict(self.headers) if self.headers is not None else {}
 
         (method, url) = target
