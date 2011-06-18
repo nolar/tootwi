@@ -149,11 +149,15 @@ class OAuthCredentials(Credentials):
 class OAuthConsumerCredentials(OAuthCredentials):
     def __init__(self, consumer_key, consumer_secret):
         super(OAuthConsumerCredentials, self).__init__(consumer_key, consumer_secret)
+    
+    def request(self):
+        pass #!!! it should be here! not in API
+
 
 class OAuthRequestCredentials(OAuthCredentials):
     def __init__(self, consumer_key, consumer_secret, request_token_key, request_token_secret):
         super(OAuthRequestCredentials, self).__init__(consumer_key, consumer_secret, request_token_key, request_token_secret)
-
+    
 class OAuthAccessCredentials(OAuthCredentials):
     def __init__(self, consumer_key, consumer_secret, access_token_key, access_token_secret):
         super(OAuthAccessCredentials, self).__init__(consumer_key, consumer_secret, access_token_key, access_token_secret)

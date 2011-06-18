@@ -20,7 +20,7 @@ There is no need to inherit this class, since it is sufficient. Though you still
 """
 
 import contextlib
-import json
+from .decoders import JsonDecoder, FormDecoder
 
 #??? move serialization to the separate classes (serializers.py?): JsonSerializer, XmlSerializer, RssSerializer, etc
 
@@ -62,7 +62,7 @@ class API(object):
         self.api_base = api_base if api_base is not None else self.DEFAULT_API_BASE
         self.headers = headers if headers is not None else {}
 
-    def call(self, target, parameters=None):
+    def call(self, target, parameters=None, decoder=JsonDecoder):
         """
         Single request scenario (connect, send, recv, close).
 
@@ -77,17 +77,17 @@ class API(object):
         if self.throttler:
             self.throttler.wait() # blocking wait
 
-        with contextlib.closing(self.connection.open(self.credentials.sign(*self.prepare(target, parameters)))) as handle:
+        with contextlib.closing(self.connection.open(self.credentials.sign(*self.prepare(target, parameters, decoder)))) as handle:
             try:
                 print('Requesting...')#!!!
                 line = handle.read()
-                data = json.loads(line, 'utf8') if line.strip() else None
+                data = decoder(line)
                 print('DONE...')#!!!
                 return data
             finally:
                 pass
 
-    def flow(self, target, parameters=None):
+    def flow(self, target, parameters=None, decoder=JsonDecoder):
         """
         Data flow scenario (connect, send, recv line by line, close).
 
@@ -104,19 +104,19 @@ class API(object):
             self.throttler.wait() # blocking wait
 
         #!!! flows/streams are cnceptually non-close-able when exception happens inside for cycle (i.e., outside of generator).
-        with contextlib.closing(self.connection.open(self.credentials.sign(*self.prepare(target, parameters)))) as handle:
+        with contextlib.closing(self.connection.open(self.credentials.sign(*self.prepare(target, parameters, decoder)))) as handle:
             try:
                 print('Iterating...')#!!!
                 while True:
                     line = handle.readline()
-                    data = json.loads(line, 'utf8') if line.strip() else None
+                    data = decoder(line)
                     yield data
                 print('DONE...')#!!!
             finally:
                 pass
 
     #??? make it protected? rename to _prepare().
-    def prepare(self, target, parameters=None):
+    def prepare(self, target, parameters, decoder):
         """
         Internal utilitary function to unify preparation of arguments
         for call() and flow() methods, since the logic is the same,
@@ -133,8 +133,7 @@ class API(object):
 
         # Make url absolute. Add format extension if it is not there yet.
         url = url if '://' in url else self.api_base + url
-        url = url if url.endswith('.json') else url + '.json'
-        #!!! format url placeholders with values from parameters
+        url = url if url.endswith(decoder.extension) else url + decoder.extension
         url = url % parameters #todo!!! catch unknown keys? or pass-throw
 
         # Add User-Agent header to the headers.
@@ -144,3 +143,19 @@ class API(object):
 
         # The result MUST be in the same order as accepted by Credentials.sign().
         return (method, url, parameters, headers)
+
+    REQUEST_TOKEN = ('POST', 'https://api.twitter.com/oauth/request_token') #NB: no version
+    VERIFY_TOKEN  = ('POST', 'https://api.twitter.com/oauth/access_token') #NB: no version
+    
+    def request(self, callback=None):#!!! it should be in OAuthConsumerCredentials
+        result = self.call(self.REQUEST_TOKEN, dict(
+                oauth_callback = callback,
+            ), decoder=FormDecoder)
+        url = 'https://api.twitter.com/oauth/authorize?oauth_token=%s' % result['oauth_token'] #!!!todo: urlencode
+        return url, result['oauth_token'], result['oauth_token_secret'], result['oauth_callback_confirmed']
+    
+    def verify(self, verifier):#!!! this must be in OAuthRequestCredentials
+        result = self.call(self.VERIFY_TOKEN, dict(
+                oauth_verifier = verifier,
+            ), decoder=FormDecoder)
+        return result['oauth_token'], result['oauth_token_secret'], result['user_id'], result['screen_name']
