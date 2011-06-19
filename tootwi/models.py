@@ -182,7 +182,11 @@ class Item(Model):
 
     TODO: solve the mess with params+data, and probably make params unmutable, or whatever else.
     """
-
+    
+    def __init__(self, api, data=None, **kwargs):
+        data = dict(data) if data is not None else {}
+        super(Item, self).__init__(api=api, data=data, **kwargs)
+    
     #
     # Dict-like syntax for item data values. Falls back to parameters when no value is found.
     #

@@ -1,19 +1,15 @@
 # coding: utf-8
 
-class Decoder(dict):
+class Decoder(object):
     extension = None
     
-    def __init__(self, data):
-        decoded = self.decode(data)
-        super(Decoder, self).__init__(decoded)
-    
-    def decode(self, data):
+    def __call__(self, data):
         raise NotImplemented()
 
 class JsonDecoder(Decoder):
     extension = '.json'
     
-    def decode(self, data):
+    def __call__(self, data):
         import json
         assert isinstance(data, basestring)
         return json.loads(data, 'utf8') if data.strip() else {}
@@ -22,7 +18,7 @@ class JsonDecoder(Decoder):
 class FormDecoder(Decoder):
     extension = ''
     
-    def decode(self, data):
+    def __call__(self, data):
         assert isinstance(data, basestring)
         import urlparse
         return dict(urlparse.parse_qsl(data, keep_blank_values=True, strict_parsing=True))

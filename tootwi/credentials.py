@@ -93,7 +93,7 @@ class Credentials(object):
         """
         return self.api.call(self.sign(*self.prepare(target, parameters, decoder)), decoder)
     
-    def flow(self, target, paramaters=None, decoder=JsonDecoder):
+    def flow(self, target, parameters=None, decoder=JsonDecoder):
         """
         Delegates the multi-data flow to API instance.
         Returns generator, which yields decoded objects.

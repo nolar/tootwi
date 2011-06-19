@@ -83,6 +83,8 @@ class API(object):
         
         if self.throttler is not None:
             self.throttler.wait() # blocking wait
+        if isinstance(decoder, type):
+            decoder = decoder()
         
         with contextlib.closing(self.connector.open(request)) as handle:
             try:
@@ -97,19 +99,21 @@ class API(object):
     def flow(self, request, decoder=None):
         """
         Data flow scenario (connect, send, recv line by line, close).
-
+        
         Iteration over a stream is a sequental access to each of the message there.
         Each recieved line is parsed as a separate result object, filtered through
         the callback, then yielded.
-
+        
         Intended usage:
             for item in api.flow((method, url), parameters):
                 do_something(item)
-
+        
         """
         if self.throttler:
             self.throttler.wait() # blocking wait
-
+        if isinstance(decoder, type):
+            decoder = decoder()
+        
         #!!! flows/streams are cnceptually non-close-able when exception happens inside for cycle (i.e., outside of generator).
         with contextlib.closing(self.connector.open(request)) as handle:
             try:
