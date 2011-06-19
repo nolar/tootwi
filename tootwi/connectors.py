@@ -1,13 +1,13 @@
 # coding: utf-8
 """
-Connections are responsible for networking activities of the API. Connection object
+Connectors are responsible for networking activities of the API. Connector object
 is usually passed to the API constructor and is used for its requests and streams.
 
 There can be few networking layers and libraries, and the developers are free
 to choose which one to use. They can also make their own connection class to
 utilize their own underling library.
 
-All derived connections must either inherit from Connection class, or at least
+All derived connections must either inherit from Connector class, or at least
 implement its protocol. Protocol consists of the open(request) method on the main
 connection class, and read(), readline(), close() methods of returned file-like object.
 
@@ -42,7 +42,7 @@ class File(object):
     def read(self, length=None):
         raise NotImplemented()
 
-class Connection(object):
+class Connector(object):
     """
     Base connection class. Should never be instantiated directly.
     Descendants must implement open(request) method and return
@@ -50,14 +50,13 @@ class Connection(object):
     """
     def open(self, request):
         raise NotImplemented()
-
 #
-# Connections via urllib2.
+# Connectors via urllib2.
 #
 
-class urllib2Connection(Connection):
+class urllib2Connector(Connector):
     """
-    Connection implementation with urllib2 library. Uses library's native
+    Connector implementation with urllib2 library. Uses library's native
     file-like object, since it conforms to the protocol of the File class.
     """
     def open(self, request):
@@ -86,22 +85,23 @@ class urllib2Connection(Connection):
         return handle
 
 #
-# Connections via pycurl.
-#
-
-class pycurlConnection(Connection):
-    pass
-
-#
-# Connections via httplib.
+# Connectors via httplib.
 # ??? does it support streaming at all?
 #
 
-class httplibConnection(Connection):
+class httplibConnector(Connector):
     pass
+
+#
+# Connectors via pycurl.
+#
+
+class pycurlConnector(Connector):
+    pass
+
 
 #
 # Automatically detect whcih connection to use as a default.
 #??? is it stil used? or has connection became required parameter in API class?
 #
-DEFAULT_CONNECTION = urllib2Connection()
+DEFAULT_CONNECTOR = urllib2Connector()
