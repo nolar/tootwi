@@ -1,12 +1,21 @@
+# coding: utf-8
+"""
+Utilitary classes to contain extended and/or prepared information when performing
+API calls in credentials classes.
+
+todo: unite them???
+"""
+
 import contextlib
 from .connectors import DEFAULT_CONNECTOR
 
 class Request(object):
     """
-    Signed request, literally. Returned from credentials instance as a
-    result of signing initial request parameters with user credentials.
-    Should not provide write ablities except as for constructor.
-    These is no need to derive it, since this one works fine enough.
+    Signed request, literally. It is created in credentials instance as
+    a result of signing request parameters with user credentials. Since
+    all the request's properties are already signed and cannot be changed,
+    they are made read-only; the only way to specify them is a constructor.
+    These is no need to derive this class, since this one is usually enough.
     """
     
     def __init__(self, url, method, headers, postdata):
@@ -19,36 +28,46 @@ class Request(object):
     @property
     def url(self):
         return self._url
+    
     @property
     def method(self):
         return self._method
+    
     @property
     def headers(self):
         return self._headers
+    
     @property
     def postdata(self):
         return self._postdata
 
+
 class API(object):
+    """
+    API class is used as a container for common information on API itself, such as
+    version, base url, protocol used (http vs https), extra headers, etc. Instances
+    of this class could be passed to the constructors of credential classes. When not
+    passed, default instance is automatically created with all its default settings.
+    If you do not know whether to specify API instance or not to specify, then do not.
+    The developers may instantiate as many API instances with different parameters
+    as it is required for their business logic.
+    """
+    
     # A string to use as a library's User-Agent header for HTTP requests and streams.
     # Developer can specify their own User-Agent header when constructing a stream
     # or a request; in that case library's User-Agent is appended to the end of 
     # developer's one. Otherwise, library's User-Agent is used alone.
     USER_AGENT = 'tootwi/0.0' # tootwi is for truly object-oriented twitter
     
-    # Default base URL to use when called method is relative (e.g., "statuses/public_timeline.json").
-    # Can be overridden per API instance with a constructor argument. See there for more info.
-    DEFAULT_API_BASE = 'https://api.twitter.com/'
-    DEFAULT_API_VERSION = '1'
-    
-    def __init__(self, connector=None, throttler=None, headers=None, api_base=None, api_version=None):
+    def __init__(self, connector=None, throttler=None, headers={}, use_ssl=True, api_host='api.twitter.com', api_version='1'):
         super(API, self).__init__()
         self.connector = connector if connector is not None else DEFAULT_CONNECTOR
         self.throttler = throttler # ??? default throttler?
-        self.headers = headers if headers is not None else {}
-        self.api_base = api_base if api_base is not None else self.DEFAULT_API_BASE
+        self.headers = headers
+        self.use_ssl = use_ssl
+        self.api_host = api_host if api_host is not None else self.DEFAULT_API_HOST
         self.api_version = api_version if api_version is not None else self.DEFAULT_API_VERSION
-
+    
     def call(self, request, decoder=None):
         """
         Single request scenario (connect, send, recv, close).
@@ -62,7 +81,7 @@ class API(object):
             do_something(item)
         """
         
-        if self.throttler:
+        if self.throttler is not None:
             self.throttler.wait() # blocking wait
         
         with contextlib.closing(self.connector.open(request)) as handle:
@@ -106,9 +125,20 @@ class API(object):
     def normalize_url(self, url):
         assert isinstance(url, basestring)
         
+        schema = 'https' if self.use_ssl else 'http'
         if '://' in url:
             return url
         elif url.startswith('/'):
-            return '/'.join([self.api_base.strip('/'), url.strip('/')])
+            return '%s://%s/%s' % (schema, self.api_host, url.strip('/'))
         else:
-            return '/'.join([self.api_base.strip('/'), self.api_version.strip('/'), url.strip('/')])
+            return '%s://%s/%s/%s' % (schema, self.api_host, self.api_version, url.strip('/'))
+    
+    def normalize_headers(self, headers):
+        assert isinstance(headers, dict)
+        
+        # Add User-Agent header to the headers.
+        #??? what if it has came in lower or upper case?
+        #??? why is this here and not in connectors.py? because we cannnot alter headers after signed!
+        #headers['User-Agent'] = ' '.join([s for s in [headers.get('User-Agent'), self.USER_AGENT] if s])
+        
+        return headers
