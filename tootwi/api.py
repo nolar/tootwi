@@ -140,9 +140,8 @@ class API(object):
     def normalize_headers(self, headers):
         assert isinstance(headers, dict)
         
-        # Add User-Agent header to the headers.
+        # Add User-Agent header to the headers. Append if there is one already.
         #??? what if it has came in lower or upper case?
-        #??? why is this here and not in connectors.py? because we cannnot alter headers after signed!
-        #headers['User-Agent'] = ' '.join([s for s in [headers.get('User-Agent'), self.USER_AGENT] if s])
+        headers['User-Agent'] = ' '.join([s for s in [headers.get('User-Agent'), self.USER_AGENT] if s])
         
         return headers
