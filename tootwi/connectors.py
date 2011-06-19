@@ -48,7 +48,7 @@ class Connector(object):
     Descendants must implement open(request) method and return
     file-like object wth the same protocol as in File class above.
     """
-    def open(self, request):
+    def __call__(self, request):
         raise NotImplemented()
 #
 # Connectors via urllib2.
@@ -59,7 +59,7 @@ class urllib2Connector(Connector):
     Connector implementation with urllib2 library. Uses library's native
     file-like object, since it conforms to the protocol of the File class.
     """
-    def open(self, request):
+    def __call__(self, request):
         # On-demand import to avoid errors when this connection is not used.
         import urllib2, urllib
 

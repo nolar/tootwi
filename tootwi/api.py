@@ -68,7 +68,7 @@ class API(object):
         self.api_host = api_host if api_host is not None else self.DEFAULT_API_HOST
         self.api_version = api_version if api_version is not None else self.DEFAULT_API_VERSION
     
-    def call(self, request, decoder=None):
+    def call(self, request, decoder):
         """
         Single request scenario (connect, send, recv, close).
         
@@ -86,7 +86,7 @@ class API(object):
         if isinstance(decoder, type):
             decoder = decoder()
         
-        with contextlib.closing(self.connector.open(request)) as handle:
+        with contextlib.closing(self.connector(request)) as handle:
             try:
                 print('Requesting...')#!!!
                 line = handle.read()
@@ -96,7 +96,7 @@ class API(object):
             finally:
                 pass
     
-    def flow(self, request, decoder=None):
+    def flow(self, request, decoder):
         """
         Data flow scenario (connect, send, recv line by line, close).
         
@@ -115,7 +115,7 @@ class API(object):
             decoder = decoder()
         
         #!!! flows/streams are cnceptually non-close-able when exception happens inside for cycle (i.e., outside of generator).
-        with contextlib.closing(self.connector.open(request)) as handle:
+        with contextlib.closing(self.connector(request)) as handle:
             try:
                 print('Iterating...')#!!!
                 while True:
