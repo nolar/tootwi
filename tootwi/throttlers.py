@@ -25,7 +25,6 @@ and still can be used on their own, while being in one or more groups.
 import time
 import datetime
 
-
 class Throttler(object):
     """
     Base throttler. Should never be instantiated directly.

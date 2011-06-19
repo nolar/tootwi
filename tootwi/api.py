@@ -126,16 +126,21 @@ class API(object):
             finally:
                 pass
     
-    def normalize_url(self, url):
+    def normalize_url(self, url, extension=None):
         assert isinstance(url, basestring)
+        assert isinstance(extension, basestring) or extension is None
         
+        #NB: We do not cut extension if it is already in the url.
+        #NB: This is a problem of developer who specifies methods such a way.
         schema = 'https' if self.use_ssl else 'http'
+        extension = unicode(extension).strip('.') if extension else ''
+        extension = '.' + extension if extension else extension
         if '://' in url:
-            return url
+            return '%s%s' % (url, extension)
         elif url.startswith('/'):
-            return '%s://%s/%s' % (schema, self.api_host, url.strip('/'))
+            return '%s://%s/%s%s' % (schema, self.api_host, url.strip('/'), extension)
         else:
-            return '%s://%s/%s/%s' % (schema, self.api_host, self.api_version, url.strip('/'))
+            return '%s://%s/%s/%s%s' % (schema, self.api_host, self.api_version, url.strip('/'), extension)
     
     def normalize_headers(self, headers):
         assert isinstance(headers, dict)

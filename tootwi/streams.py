@@ -24,12 +24,12 @@ class Stream(object):
 
 
 class SampleStream(Stream):
-    SOURCE = ('GET' , 'http://stream.twitter.com/1/statuses/sample.json')
+    SOURCE = ('GET' , 'http://stream.twitter.com/1/statuses/sample')
     def __init__(self, api, factory=None):
         super(SampleStream, self).__init__(api, factory)
 
 class FilterStream(Stream):
-    SOURCE = ('POST', 'http://stream.twitter.com/1/statuses/filter.json')
+    SOURCE = ('POST', 'http://stream.twitter.com/1/statuses/filter')
     def __init__(self, api, factory=None, follow=None):
         if not isinstance(follow, basestring):
             follow = list(follow) if follow is not None else []
@@ -37,22 +37,22 @@ class FilterStream(Stream):
         super(FilterStream, self).__init__(api, factory, follow=follow)
 
 class FirehoseStream(Stream):
-    SOURCE = ('GET' , 'http://stream.twitter.com/1/statuses/firehose.json')
+    SOURCE = ('GET' , 'http://stream.twitter.com/1/statuses/firehose')
     def __init__(self, api, factory=None):
         super(FirehoseStream, self).__init__(api, factory)
 
 class LinksStream(Stream):
-    SOURCE = ('GET' , 'http://stream.twitter.com/1/statuses/links.json')
+    SOURCE = ('GET' , 'http://stream.twitter.com/1/statuses/links')
     def __init__(self, api, factory=None):
         super(LinksStream, self).__init__(api, factory)
 
 class RetweetStream(Stream):
-    SOURCE = ('GET' , 'http://stream.twitter.com/1/statuses/retweet.json')
+    SOURCE = ('GET' , 'http://stream.twitter.com/1/statuses/retweet')
     def __init__(self, api, factory=None):
         super(RetweetStream, self).__init__(api, factory)
 
 class UserStream(Stream):
-    SOURCE = ('POST', 'https://userstream.twitter.com/2/user.json')
+    SOURCE = ('POST', 'https://userstream.twitter.com/2/user')
     def __init__(self, api, factory=None):
         super(UserStream, self).__init__(api, factory)
 

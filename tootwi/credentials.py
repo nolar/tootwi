@@ -72,8 +72,7 @@ class Credentials(object):
         # Make url absolute; add format extension if it is not there yet; resolve parameters.
         (method, url) = target
         method = method.strip().upper()
-        url = self.api.normalize_url(url)
-        url = url if url.endswith(decoder.extension) else url + decoder.extension
+        url = self.api.normalize_url(url, getattr(decoder, 'extension', None))
         url = url % parameters #NB: extra keys will be ignored; missed ones will cause exception.
         
         # The result MUST be in the same order as accepted by Credentials.sign().
