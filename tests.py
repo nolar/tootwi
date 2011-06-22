@@ -30,39 +30,63 @@ class ApplicationCredentialsTest(unittest.TestCase):
         application_credentials = ApplicationCredentials(CONSUMER_KEY, CONSUMER_SECRET, api=api)
         self.assertEqual(application_credentials.consumer_key, CONSUMER_KEY)
         self.assertEqual(application_credentials.consumer_secret, CONSUMER_SECRET)
+
+
+class TemporaryCredentialsTest(unittest.TestCase):
+    pass
+
+
+class OAuthRequestScenarioTest(unittest.TestCase):
+    GOOD_CALLBACK = 'http://nolar.info.local/'
+    BAD_FORMAT_CALLBACK = 'what? callback? what callback?'
+    UNAUTHORIZED_CALLBACK = 'http://unauthorized.zone.example.com/'
     
     def testRequestForAuthorizationWithNoCallback(self):
         from tootwi import ApplicationCredentials, TemporaryCredentials
         application_credentials = ApplicationCredentials(CONSUMER_KEY, CONSUMER_SECRET)
         
         temporary_credentials = application_credentials.request()
-        self.assertTrue(isinstance(temporary_credentials, TemporaryCredentials))
+        self.assertIsInstance(temporary_credentials, TemporaryCredentials)
         self.assertEqual(temporary_credentials.consumer_key, CONSUMER_KEY)
         self.assertEqual(temporary_credentials.consumer_secret, CONSUMER_SECRET)
         
         url = temporary_credentials.url
         self.assertTrue('http://' in url or 'https://' in url)
         self.assertTrue('://api.twitter.com/oauth/authorize?oauth_token=' in url)
-    
-    GOOD_CALLBACK = 'http://localhost/'
-    BAD_CALLBACK = 'http://google.com/'
-    
-    def testRequestForAuthorizationWithBadCallback(self):
-        from tootwi import ApplicationCredentials, OAuthCallbackError
-        application_credentials = ApplicationCredentials(CONSUMER_KEY, CONSUMER_SECRET)
-        with self.assertRaises(OAuthCallbackError):
-            temporary_credentials = application_credentials.request(self.BAD_CALLBACK)
 
     def testRequestForAuthorizationWithGoodCallback(self):
+        #!!! Assuming the callback domain is authorized and is of valid format (not localhost).
         from tootwi import ApplicationCredentials, TemporaryCredentials
         application_credentials = ApplicationCredentials(CONSUMER_KEY, CONSUMER_SECRET)
         temporary_credentials = application_credentials.request(self.GOOD_CALLBACK)
         self.assertTrue(isinstance(temporary_credentials, TemporaryCredentials))
         self.assertTrue(temporary_credentials.callback_confirmed)
     
+    def testRequestForAuthorizationWithEmptyCallback(self):
+        #!!! Assuming the callback domain is authorized and is of valid format (not localhost).
+        from tootwi import ApplicationCredentials, OAuthCallbackError
+        application_credentials = ApplicationCredentials(CONSUMER_KEY, CONSUMER_SECRET)
+        with self.assertRaises(OAuthCallbackError):
+            temporary_credentials = application_credentials.request('')
+    
+    def testRequestForAuthorizationWithBadFormatCallback(self):
+        #!!! Assuming the callback domain is authorized and is of valid format (not localhost).
+        from tootwi import ApplicationCredentials, OAuthCallbackError
+        application_credentials = ApplicationCredentials(CONSUMER_KEY, CONSUMER_SECRET)
+        with self.assertRaises(OAuthCallbackError):
+            temporary_credentials = application_credentials.request(self.BAD_FORMAT_CALLBACK)
+    
+    def testRequestForAuthorizationWithBadFormatCallback(self):
+        #!!! Assuming the callback domain is authorized and is of valid format (not localhost).
+        from tootwi import ApplicationCredentials, OAuthCallbackError
+        application_credentials = ApplicationCredentials(CONSUMER_KEY, CONSUMER_SECRET)
+        with self.assertRaises(OAuthCallbackError):
+            temporary_credentials = application_credentials.request(self.UNAUTHORIZED_CALLBACK)
 
-class TemporaryCredentials(unittest.TestCase):
+
+class OAuthConfirmScenarioTest(unittest.TestCase):
     pass
+
 
 class OtherStuff(unittest.TestCase):
     pass
