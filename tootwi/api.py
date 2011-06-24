@@ -7,7 +7,7 @@ todo: unite them???
 """
 
 import contextlib
-from .connectors import DEFAULT_CONNECTOR, ConnectorError
+from .transports import DEFAULT_TRANSPORT, TransportError
 from .errors import CredentialsWrongError, RequestTargetError, RequestParametersError, RequestCallbackError
 
 class Request(object):
@@ -60,9 +60,9 @@ class API(object):
     # developer's one. Otherwise, library's User-Agent is used alone.
     USER_AGENT = 'tootwi/0.0' # tootwi is for truly object-oriented twitter
     
-    def __init__(self, connector=None, throttler=None, headers={}, use_ssl=True, api_host='api.twitter.com', api_version='1'):
+    def __init__(self, transport=None, throttler=None, headers={}, use_ssl=True, api_host='api.twitter.com', api_version='1'):
         super(API, self).__init__()
-        self.connector = connector if connector is not None else DEFAULT_CONNECTOR
+        self.transport = transport if transport is not None else DEFAULT_TRANSPORT
         self.throttler = throttler # ??? default throttler?
         self.headers = headers
         self.use_ssl = use_ssl
@@ -89,14 +89,14 @@ class API(object):
         
         # Error might raise at any stage: connect, send, recv, parse, close -- all is the same for us.
         try:
-            with contextlib.closing(self.connector(request)) as handle:
+            with contextlib.closing(self.transport(request)) as handle:
                 print('Requesting...')#!!!
                 line = handle.read()
                 data = decoder(line)
                 print('DONE...')#!!!
                 return data
-        except ConnectorError, e:
-            self.parse_connector_error(e)
+        except TransportError, e:
+            self.handle_transport_error(e)
     
     def flow(self, request, decoder):
         """
@@ -119,15 +119,15 @@ class API(object):
         #!!! flows/streams are cnceptually non-close-able when exception happens inside for cycle (i.e., outside of generator).
         # Error might raise at any stage: connect, send, recv, parse, close -- all is the same for us.
         try:
-            with contextlib.closing(self.connector(request)) as handle:
+            with contextlib.closing(self.transport(request)) as handle:
                 print('Iterating...')#!!!
                 while True:
                     line = handle.readline()
                     data = decoder(line)
                     yield data
                 print('DONE...')#!!!
-        except ConnectorError, e:
-            self.parse_connector_error(e)
+        except TransportError, e:
+            self.handle_transport_error(e)
     
     def normalize_url(self, url, extension=None):
         assert isinstance(url, basestring)
@@ -154,16 +154,16 @@ class API(object):
         
         return headers
     
-    def parse_connector_error(self, e):
+    def handle_transport_error(self, e):
         """
         Since this class is responsible for URL structure, thus taking responsibility
         of the protocol conventions, it is also responsible for knowledge of what
         responses can contain, and thus performing error analysis and parsing.
         This can change in the future, since proper responsible class is not obvious.
-        It can be a connector (down the stack), or a credentials (up the stack).
+        It can be a transport (down the stack), or a credentials (up the stack).
         TODO: rethink responsibilities.
         """
-        # Assuming ConnectorError is a concept of HTTP error and has status code and response text.
+        # Assuming TransportError is a concept of HTTP error and has status code and response text.
         if e.code in (404, '404'): # comes as meta-information
             raise RequestTargetError(e.text)
         elif 'Failed to validate oauth signature and token' in e.text: # plaintext response
