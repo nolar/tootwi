@@ -73,18 +73,37 @@ class urllib2Transport(Transport):
     Transport implementation with urllib2 library. Returns library's native
     file-like object, since it conforms to the protocol of the File class.
     """
+    
+    class SocketBufSizeHack(object):
+        def __init__(self, bufsize):
+            super(urllib2Transport.SocketBufSizeHack, self).__init__()
+            self.bufsize = bufsize
+        
+        def __enter__(self):
+            if self.bufsize is not None:
+                # Rough hack to make streams work properly. Default bufsize if 8192 bytes,
+                # thus causing readline() to block until all the buffer is read, even if
+                # there are lines available. Bad for low-volume connections because of the lag.
+                import socket;
+                self.old_default_bufsize = socket._fileobject.default_bufsize
+                socket._fileobject.default_bufsize = self.bufsize # zero is for no buffering
+            return self
+        
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            if self.bufsize is not None:
+                # Restore default values after file object is instantiated.
+                import socket;
+                socket._fileobject.default_bufsize = self.old_default_bufsize
+    
+    def __init__(self, bufsize=None):
+        super(urllib2Transport, self).__init__()
+        self.bufsize = bufsize
+    
     def __call__(self, request):
         # On-demand import to avoid errors when this connection is not used.
         import urllib2, urllib
         
-        import socket;
-        try:
-            # Rough hack to make streams work properly. Default bufsize if 8192 bytes,
-            # thus causing readline() to block until all the buffer is read, even if
-            # there are lines available. Bad for low-volume connections because of the lag.
-            old_default_bufsize = socket._fileobject.default_bufsize
-            socket._fileobject.default_bufsize = 0 # zero is for no buffering
-            
+        with self.SocketBufSizeHack(self.bufsize):
             # HTTP method will be automatically choosen based on presence or absence of the postdata.
             # Errors are re-raised almost straightforwardly (urllib2 uses exceptions for HTTP codes).
             try:
@@ -96,9 +115,6 @@ class urllib2Transport(Transport):
                 code = e.getcode()
                 text = e.read()
                 raise TransportError(text, code, text)#???!!!
-        finally:
-            #FIXME: Restore default values after file object is instantiated.
-            socket._fileobject.default_bufsize = old_default_bufsize
         
         return handle
     
