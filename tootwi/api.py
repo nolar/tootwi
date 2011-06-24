@@ -8,7 +8,7 @@ todo: unite them???
 
 import contextlib
 from .transports import DEFAULT_TRANSPORT, TransportError
-from .errors import CredentialsWrongError, RequestTargetError, RequestParametersError, RequestCallbackError
+from .errors import CredentialsWrongError, RequestTargetError, RequestParametersError, RequestCallbackError, RequestAccessError
 
 class Request(object):
     """
@@ -164,13 +164,18 @@ class API(object):
         TODO: rethink responsibilities.
         """
         # Assuming TransportError is a concept of HTTP error and has status code and response text.
-        if e.code in (404, '404'): # comes as meta-information
-            raise RequestTargetError(e.text)
+        #TODO: more checks
+        if False: # just to use "elif" for all other conditions.
+            pass
         elif 'Failed to validate oauth signature and token' in e.text: # plaintext response
             raise CredentialsWrongError('Failed to validate oauth signature and token')
         elif 'Desktop applications only support the oauth_callback value \'oob\'' in e.text: # xml response
             raise RequestCallbackError('Desktop applications only support the oauth_callback value \'oob\'')
-        #!!! more checks!!!
+        elif e.code == 401:
+            raise RequestAccessError(e.text or 'Requested operation is not permitted with these credentials.')
+        elif e.code == 404:
+            raise RequestTargetError(e.text or 'Requested operation does not exist or URL is malformed.')
         else:
             # If we do not know what is the error in our semantics, then it is not our headache.
+            #import pdb; pdb.set_trace()
             raise e

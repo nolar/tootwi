@@ -31,8 +31,8 @@ __all__ = ['urllib2Transport', 'DEFAULT_TRANSPORT']
 class TransportError(Exception):
     def __init__(self, msg, http_code, http_text):
         super(TransportError, self).__init__(msg)
-        self.code = http_code
-        self.text = http_text
+        self.code =     int(http_code if http_code else 0 ) 
+        self.text = unicode(http_text if http_text else '').strip()
 
 
 class File(object):
@@ -84,15 +84,18 @@ class urllib2Transport(Transport):
             # there are lines available. Bad for low-volume connections because of the lag.
             old_default_bufsize = socket._fileobject.default_bufsize
             socket._fileobject.default_bufsize = 0 # zero is for no buffering
-        
+            
             # HTTP method will be automatically choosen based on presence or absence of the postdata.
+            # Errors are re-raised almost straightforwardly (urllib2 uses exceptions for HTTP codes).
             try:
                 req = urllib2.Request(request.url,
                     request.postdata if request.method=='POST' else None,
                     headers=request.headers)
                 handle = urllib2.urlopen(req)
             except urllib2.HTTPError, e:
-                raise TransportError(e.msg, e.getcode(), e.read())
+                code = e.getcode()
+                text = e.read()
+                raise TransportError(text, code, text)#???!!!
         finally:
             #FIXME: Restore default values after file object is instantiated.
             socket._fileobject.default_bufsize = old_default_bufsize

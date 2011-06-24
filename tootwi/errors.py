@@ -2,10 +2,11 @@
 
 class Error(Exception): pass
 
-class CredentialsWrongError(Error): pass # wrong credentials and/or app settings
+class CredentialsWrongError(Error): pass # wrong credentials or settings
 
 class RequestError(Error): pass
-class RequestTargetError(RequestError): pass # requested method/url were not found
+class RequestAccessError(RequestError): pass # operation is not permitted
+class RequestTargetError(RequestError): pass # requested method+url were not found
 class RequestParametersError(RequestError): pass
 class RequestCallbackError(RequestParametersError): pass # where callback is applicable (OAuth, xAuth)
 
