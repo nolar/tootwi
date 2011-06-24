@@ -7,7 +7,8 @@ todo: unite them???
 """
 
 import contextlib
-from .connectors import DEFAULT_CONNECTOR
+from .connectors import DEFAULT_CONNECTOR, ConnectorError
+from .errors import CredentialsWrongError, RequestTargetError, RequestParametersError, RequestCallbackError
 
 class Request(object):
     """
@@ -86,15 +87,16 @@ class API(object):
         if isinstance(decoder, type):
             decoder = decoder()
         
-        with contextlib.closing(self.connector(request)) as handle:
-            try:
+        # Error might raise at any stage: connect, send, recv, parse, close -- all is the same for us.
+        try:
+            with contextlib.closing(self.connector(request)) as handle:
                 print('Requesting...')#!!!
                 line = handle.read()
                 data = decoder(line)
                 print('DONE...')#!!!
                 return data
-            finally:
-                pass
+        except ConnectorError, e:
+            self.parse_connector_error(e)
     
     def flow(self, request, decoder):
         """
@@ -115,16 +117,17 @@ class API(object):
             decoder = decoder()
         
         #!!! flows/streams are cnceptually non-close-able when exception happens inside for cycle (i.e., outside of generator).
-        with contextlib.closing(self.connector(request)) as handle:
-            try:
+        # Error might raise at any stage: connect, send, recv, parse, close -- all is the same for us.
+        try:
+            with contextlib.closing(self.connector(request)) as handle:
                 print('Iterating...')#!!!
                 while True:
                     line = handle.readline()
                     data = decoder(line)
                     yield data
                 print('DONE...')#!!!
-            finally:
-                pass
+        except ConnectorError, e:
+            self.parse_connector_error(e)
     
     def normalize_url(self, url, extension=None):
         assert isinstance(url, basestring)
@@ -150,3 +153,24 @@ class API(object):
         headers['User-Agent'] = ' '.join([s for s in [headers.get('User-Agent'), self.USER_AGENT] if s])
         
         return headers
+    
+    def parse_connector_error(self, e):
+        """
+        Since this class is responsible for URL structure, thus taking responsibility
+        of the protocol conventions, it is also responsible for knowledge of what
+        responses can contain, and thus performing error analysis and parsing.
+        This can change in the future, since proper responsible class is not obvious.
+        It can be a connector (down the stack), or a credentials (up the stack).
+        TODO: rethink responsibilities.
+        """
+        # Assuming ConnectorError is a concept of HTTP error and has status code and response text.
+        if e.code in (404, '404'): # comes as meta-information
+            raise RequestTargetError(e.text)
+        elif 'Failed to validate oauth signature and token' in e.text: # plaintext response
+            raise CredentialsWrongError('Failed to validate oauth signature and token')
+        elif 'Desktop applications only support the oauth_callback value \'oob\'' in e.text: # xml response
+            raise RequestCallbackError('Desktop applications only support the oauth_callback value \'oob\'')
+        #!!! more checks!!!
+        else:
+            # If we do not know what is the error in our semantics, then it is not our headache.
+            raise e

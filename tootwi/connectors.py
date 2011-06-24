@@ -28,6 +28,13 @@ __all__ = ['urllib2Connector', 'DEFAULT_CONNECTOR']
 # Base classes and their protocols.
 #
 
+class ConnectorError(Exception):
+    def __init__(self, msg, http_code, http_text):
+        super(ConnectorError, self).__init__(msg)
+        self.code = http_code
+        self.text = http_text
+
+
 class File(object):
     """
     Base file-like object class/interface. Specific implementations can either
@@ -39,6 +46,7 @@ class File(object):
         raise NotImplemented()
     def read(self, length=None):
         raise NotImplemented()
+
 
 class Connector(object):
     """
@@ -79,10 +87,13 @@ class urllib2Connector(Connector):
             socket._fileobject.default_bufsize = 0 # zero is for no buffering
         
             # HTTP method will be automatically choosen based on presence or absence of the postdata.
-            req = urllib2.Request(request.url,
-                request.postdata if request.method=='POST' else None,
-                headers=request.headers)
-            handle = urllib2.urlopen(req)
+            try:
+                req = urllib2.Request(request.url,
+                    request.postdata if request.method=='POST' else None,
+                    headers=request.headers)
+                handle = urllib2.urlopen(req)
+            except urllib2.HTTPError, e:
+                raise ConnectorError(e.msg, e.getcode(), e.read())
         finally:
             #FIXME: Restore default values after file object is instantiated.
             socket._fileobject.default_bufsize = old_default_bufsize
