@@ -7,7 +7,7 @@ todo: unite them???
 """
 
 import contextlib
-from .connectors import DEFAULT_CONNECTOR
+from .transports import DEFAULT_TRANSPORT
 
 class Request(object):
     """
@@ -59,9 +59,9 @@ class API(object):
     # developer's one. Otherwise, library's User-Agent is used alone.
     USER_AGENT = 'tootwi/0.0' # tootwi is for truly object-oriented twitter
     
-    def __init__(self, connector=None, throttler=None, headers={}, use_ssl=True, api_host='api.twitter.com', api_version='1'):
+    def __init__(self, transport=None, throttler=None, headers={}, use_ssl=True, api_host='api.twitter.com', api_version='1'):
         super(API, self).__init__()
-        self.connector = connector if connector is not None else DEFAULT_CONNECTOR
+        self.transport = transport if transport is not None else DEFAULT_TRANSPORT
         self.throttler = throttler # ??? default throttler?
         self.headers = headers
         self.use_ssl = use_ssl
@@ -86,7 +86,7 @@ class API(object):
         if isinstance(decoder, type):
             decoder = decoder()
         
-        with contextlib.closing(self.connector(request)) as handle:
+        with contextlib.closing(self.transport(request)) as handle:
             try:
                 print('Requesting...')#!!!
                 line = handle.read()
@@ -115,7 +115,7 @@ class API(object):
             decoder = decoder()
         
         #!!! flows/streams are cnceptually non-close-able when exception happens inside for cycle (i.e., outside of generator).
-        with contextlib.closing(self.connector(request)) as handle:
+        with contextlib.closing(self.transport(request)) as handle:
             try:
                 print('Iterating...')#!!!
                 while True:

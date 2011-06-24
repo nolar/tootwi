@@ -1,27 +1,27 @@
 # coding: utf-8
 """
-Connectors are responsible for networking activities of the API. Connector object
+Transports are responsible for networking activities of the API. Transport object
 is usually passed to the API constructor and is used for its requests and streams.
 
 There can be few networking layers and libraries, and the developers are free
-to choose which one to use. They can also make their own connector class to
+to choose which one to use. They can also make their own transport class to
 utilize their own underling library.
 
-All derived connections must either inherit from Connector class, or at least
+All derived connections must either inherit from Transport class, or at least
 implement its protocol. Protocol consists of the open(request) method on the main
-connector class, and read(), readline(), close() methods of returned file-like object.
+transport class, and read(), readline(), close() methods of returned file-like object.
 
 Request is a signed request object as created by credentials; it has read-only
 properties to use: method, url, headers, postdata. These properties must be passed
 to the remote side as is, with no modifications and extensions, since they are signed.
 
-Dependencies must be imported on demand only, i.e. when connector is instantiated
+Dependencies must be imported on demand only, i.e. when transport is instantiated
 or its method is called. There should be no dependency imports in this module itself,
 since not all of them might be installed (and not all of them are really required).
 """
 
 
-__all__ = ['urllib2Connector', 'DEFAULT_CONNECTOR']
+__all__ = ['urllib2Transport', 'DEFAULT_TRANSPORT']
 
 
 #
@@ -40,14 +40,14 @@ class File(object):
     def read(self, length=None):
         raise NotImplemented()
 
-class Connector(object):
+class Transport(object):
     """
-    Base connector class. Should never be instantiated directly.
+    Base transport class. Should never be instantiated directly.
     Descendants must implement open(request) method and return
     file-like object with the same protocol as in File class above.
     """
     def __init__(self):
-        super(Connector, self).__init__()
+        super(Transport, self).__init__()
         self.check() # raise if required libraries are not installed.
     
     def __call__(self, request):
@@ -58,12 +58,12 @@ class Connector(object):
         raise NotImplemented()
 
 #
-# Connectors via urllib2.
+# Transports via urllib2.
 #
 
-class urllib2Connector(Connector):
+class urllib2Transport(Transport):
     """
-    Connector implementation with urllib2 library. Returns library's native
+    Transport implementation with urllib2 library. Returns library's native
     file-like object, since it conforms to the protocol of the File class.
     """
     def __call__(self, request):
@@ -94,29 +94,29 @@ class urllib2Connector(Connector):
         import urllib2, urllib
 
 #
-# Connectors via httplib.
+# Transports via httplib.
 # ??? does it support streaming at all?
 #
 
-class httplibConnector(Connector):
+class httplibTransport(Transport):
     pass
 
 #
-# Connectors via pycurl.
+# Transports via pycurl.
 #
 
-class pycurlConnector(Connector):
+class pycurlTransport(Transport):
     pass
 
 #
 # Automatically detect which connection to use as a default, depending on what
-# libraries do you have installed. Note that this is an instance of the connector,
-# not the connector class. Each and every API call performed with no connector
+# libraries do you have installed. Note that this is an instance of the transport,
+# not the transport class. Each and every API call performed with no transport
 # specified will use this one.
 #
-for connector_class in [urllib2Connector, httplibConnector, pycurlConnector]:
+for transport_class in [urllib2Transport, httplibTransport, pycurlTransport]:
     try:
-        DEFAULT_CONNECTOR = connector_class()
+        DEFAULT_TRANSPORT = transport_class()
         break
     except Exception, e:
-        DEFAULT_CONNECTOR = None
+        DEFAULT_TRANSPORT = None
