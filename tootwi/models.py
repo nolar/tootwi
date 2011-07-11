@@ -170,7 +170,8 @@ class Model(object):
         if self.LOAD_SOURCE is None:
             raise NotImplemented()
         #!!! exceptions
-        self.data = self.api.call(self.LOAD_SOURCE, self.params)
+        if self.data is None:
+            self.data = self.api.call(self.LOAD_SOURCE, self.params)
         return self
 
 
@@ -232,6 +233,14 @@ class List(Model):
         self.load()#??? autoloading is under question
         for item in self.data:
             yield self.make_item(item)
+    
+    def __getitem__(self, index):
+        self.load()#??? autoloading is under question
+        return self.make_item(self.data[index])
+
+    def __getslice__(self, i, j):
+        self.load()#??? autoloading is under question
+        return self.__class__(self.api, self.data[i:j], **self.params)
 
     def make_item(self, data):
         """

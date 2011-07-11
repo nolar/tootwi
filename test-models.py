@@ -27,7 +27,10 @@ def main():
     print(user)
 
     timeline = PublicTimeline(credentials)
-    print(list(timeline)[0]) # implies one-time read()
+    print(timeline[0])
+    print
+    print(timeline[-1:])
+    print
 
     Status(credentials, text='hello world at %s' % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")).update()
     Status(credentials, text='bye world at %s' % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")).update()
