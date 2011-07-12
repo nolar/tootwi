@@ -130,6 +130,9 @@ class API(object):
         except TransportError, e:
             self.handle_transport_error(e)
     
+    def normalize_method(self, method):
+        return unicode(method).strip().upper()
+    
     def normalize_url(self, url, extension=None):
         assert isinstance(url, basestring)
         assert isinstance(extension, basestring) or extension is None

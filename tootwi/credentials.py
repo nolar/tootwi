@@ -67,12 +67,21 @@ class Credentials(object):
         parameters = dict([(k,v) for k,v in parameters.items() if v is not None])
         headers = dict([(k,v) for k,v in headers.items() if v is not None])
         
-        # Normalize HTTP requisites:
+        # Check that operation is of proper format and split it into method and url.
+        #??? Maybe to move all this stuff to Operation() class and initialize it here?
+        try:
+            (method, url) = operation
+        except TypeError: # not a tuple or other iterale
+            raise OperationValueError('Operation must be a tuple of two elements.')
+        except ValueError: # a tuple/iterable, but has too few or too much elements
+            raise OperationValueError('Operation must be a tuple of two elements.')
+        
+        # Normalize HTTP requisites (method & url).
         # Make method uppercased verb word.
         # Make url absolute; add format extension if it is not there yet; resolve parameters.
-        (method, url) = operation
-        method = method.strip().upper()
-        url = self.api.normalize_url(url, getattr(decoder, 'extension', None))
+        extension = getattr(decoder, 'extension', None)
+        method = self.api.normalize_method(method)
+        url = self.api.normalize_url(url, extension)
         url = url % parameters #NB: extra keys will be ignored; missed ones will cause exception.
         
         # The result MUST be in the same order as accepted by Credentials.sign().
