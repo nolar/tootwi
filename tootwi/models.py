@@ -104,7 +104,7 @@ class Model(object):
     model class, so you can rely on them no matter whether you use items or lists.
     """
 
-    LOAD_SOURCE = None # See Model.load() for explanation.
+    LOAD_OPERATION = None # See Model.load() for explanation.
 
     #
     # Common model protocol.
@@ -159,7 +159,7 @@ class Model(object):
         Loads model's data and stores them in model. Usually the schema is
         the same for all item and list models: one single source of information
         and parameters from the constructor. Descendants must specify class
-        field named "LOAD_SOURCE" (tuple of http method and url). If they
+        field named "LOAD_OPERATION" (tuple of http method and url). If they
         do not specify this field, NotImplemented exception will be raised
         as if the method were not implemented at all.
 
@@ -167,11 +167,11 @@ class Model(object):
         of models when derived from other models. Otherwise chained single-line
         expressions (usually derived models) will break.
         """
-        if self.LOAD_SOURCE is None:
+        if self.LOAD_OPERATION is None:
             raise NotImplemented()
         #!!! exceptions
         if self.data is None:
-            self.data = self.api.call(self.LOAD_SOURCE, self.params)
+            self.data = self.api.call(self.LOAD_OPERATION, self.params)
         return self
 
 
@@ -270,10 +270,10 @@ class Account(Item):
         return AccountUser(self.api).load()
 
 #!!! move to their own classes
-#   RATE_LIMIT_STATUS  = ('GET', 'account/rate_limit_status')
-#   TOTALS = ('GET', 'account/totals')
-#   GET_SETTINGS = ('GET' , 'account/settings')
-#   SET_SETTINGS = ('POST', 'account/settings')
+#   RATE_LIMIT_STATUS_OPERATION  = ('GET', 'account/rate_limit_status')
+#   TOTALS_OPERATION = ('GET', 'account/totals')
+#   GET_SETTINGS_OPERATION = ('GET' , 'account/settings')
+#   SET_SETTINGS_OPERATION = ('POST', 'account/settings')
 #   UPDATE_PROFILE = account/update_profile
 #   UPDATE_PROFILE_COLORS = account/update_profile_colors
 #   UPDATE_PROFILE_IMAGE = account/update_profile_image
@@ -281,24 +281,24 @@ class Account(Item):
 #
 #   def rate_limit_status(self):
 #       #!!! make special class for rate limits, with its own structure
-#       return self.api.call(self.RATE_LIMIT_STATUS, dict(...))
+#       return self.api.call(self.RATE_LIMIT_STATUS_OPERATION, dict(...))
 #
 #   def totals(self):
 #       #!!! make special class for totals, with its own structure
-#       return self.api.call(self.TOTALS, dict(...))
+#       return self.api.call(self.TOTALS_OPERATION, dict(...))
 # 
 #   def get_settings(self):
 #       #!!! make special model entity for settings, with its own structure and load()/save() methods
-#       return self.api.call(self.GET_SETTINGS)
+#       return self.api.call(self.GET_SETTINGS_OPERATION)
 # 
 #   def set_settings(self, ...):
-#       return self.api.call(self.SET_SETTINGS, dict(...))
+#       return self.api.call(self.SET_SETTINGS_OPERATION, dict(...))
 #
 #   def update_profile(self):
-#       self.api.call(self.UPDATE_PROFILE, dict(...))
+#       self.api.call(self.UPDATE_PROFILE_OPERATION, dict(...))
 #
 #   def update_profile_colors(self):
-#       self.api.call(self.UPDATE_PROFILE_COLORS, dict(...))
+#       self.api.call(self.UPDATE_PROFILE_COLORS_OPERATION, dict(...))
 #
     def get_public_timeline(self):# this is inside an account for proper rate limiting/throttling
         return PublicTimeline(self.api).load()
@@ -310,8 +310,8 @@ class User(Item):
     users in Twitter.
     """
 
-    LOAD_SOURCE = ('GET', 'users/show')
-    PROFILE_IMAGE = ('GET', 'users/profile_image/%(screen_name)s')
+    LOAD_OPERATION = ('GET', 'users/show')
+    PROFILE_IMAGE_OPERATION = ('GET', 'users/profile_image/%(screen_name)s')
 
     # Pass-through constructor for IDE auto hinting.
     def __init__(self, api, data=None, user_id=None, screen_name=None, include_entities=None, skip_status=None):
@@ -319,7 +319,7 @@ class User(Item):
 
 #   def profile_image(self):
 #       #!!! this is Http 302 redirect rather than request output - catch and return new url
-#       self.api.call(self.PROFILE_IMAGE, dict(screen_name=self['screen_name']))
+#       self.api.call(self.PROFILE_IMAGE_OPERATION, dict(screen_name=self['screen_name']))
 
     def contributors(self):
         return Contributors(self.api, user_id=self['id']).load()
@@ -329,7 +329,7 @@ class User(Item):
 
 
 class AccountUser(User):
-    LOAD_SOURCE = ('GET', 'account/verify_credentials')
+    LOAD_OPERATION = ('GET', 'account/verify_credentials')
 
     # Pass-through constructor for IDE auto hinting.
     def __init__(self, api, data=None, include_entities=None, skip_status=None):
@@ -338,7 +338,7 @@ class AccountUser(User):
 #!!!    
 ## produced from Account -- Account().suggestions() -- since it is account-dependant.
 #class Suggestions(List):
-##  SUGGESTIONS = ('GET', 'users/suggestions')
+##  SUGGESTIONS_OPERATION = ('GET', 'users/suggestions')
 #   # iterates over Suggestion
 #   ITEM_CLASS = Suggestion
 
@@ -346,35 +346,35 @@ class AccountUser(User):
 #class Suggestion(Item):
 #   # represents a category slug.
 #   def users(self):
-#       return Users(self.api.call(self.SUGGESTION_SLUG, dict(slug=...)))
+#       return Users(self.api.call(self.SUGGESTION_SLUG_OPERATION, dict(slug=...)))
 
 
 #!!! move to special classes and methods
 #class Users(List):
-#   LOOKUP = ('GET', 'users/lookup')
-#   SEARCH = ('GET', 'users/search')
-#   SUGGESTIONS = ('GET', 'users/suggestions')
-#   SUGGESTIONS_TWITTER = ('GET', 'users/suggestions/%(slug)s')
+#   LOOKUP_OPERATION = ('GET', 'users/lookup')
+#   SEARCH_OPERATION = ('GET', 'users/search')
+#   SUGGESTIONS_OPERATION = ('GET', 'users/suggestions')
+#   SUGGESTIONS_TWITTER_OPERATION = ('GET', 'users/suggestions/%(slug)s')
 
 
 class Status(Item):
-    LOAD_SOURCE = ('GET', 'statuses/show/%(id)s')
-    UPDATE  = ('POST', 'statuses/update')
-    RETWEET = ('POST', 'statuses/retweet/%(id)s')
-    DESTROY = ('POST', 'statuses/destroy/%(id)s')
+    LOAD_OPERATION = ('GET', 'statuses/show/%(id)s')
+    UPDATE_OPERATION  = ('POST', 'statuses/update')
+    RETWEET_OPERATION = ('POST', 'statuses/retweet/%(id)s')
+    DESTROY_OPERATION = ('POST', 'statuses/destroy/%(id)s')
 
 #   # Pass-through constructor for IDE auto hinting.
 #   def __init__(self, api, params=None, id=None, text=None):#!!! add more of them
 #       super(Status, self).__init__(api, params, id=id, text=text)
 
     def update(self):
-        self.data = self.api.call(self.UPDATE, dict(status=self['text']))#!!! more args
+        self.data = self.api.call(self.UPDATE_OPERATION, dict(status=self['text']))#!!! more args
 
     def retweet(self):
-        return Status(self.api, self.api.call(self.RETWEET, dict(id=self['id'])))
+        return Status(self.api, self.api.call(self.RETWEET_OPERATION, dict(id=self['id'])))
 
     def destroy(self):
-        self.api.call(self.DESTROY, dict(id=self['id']))
+        self.api.call(self.DESTROY_OPERATION, dict(id=self['id']))
         del self.data
 
     def get_user(self):
@@ -395,24 +395,24 @@ class Users(List):
     ITEM_CLASS = User
 
 class Contributors(Users):
-    LOAD_SOURCE = ('GET', 'users/contributors')
+    LOAD_OPERATION = ('GET', 'users/contributors')
 
 class Contributees(Users):
-    LOAD_SOURCE = ('GET', 'users/contributees')
+    LOAD_OPERATION = ('GET', 'users/contributees')
 
 class RetweetedBy(Users):
-    LOAD_SOURCE = ('GET', 'statuses/%(id)s/retweeted_by')
+    LOAD_OPERATION = ('GET', 'statuses/%(id)s/retweeted_by')
 
 class RetweetedByIds(List):
     ITEM_CLASS = int
-    LOAD_SOURCE = ('GET', 'statuses/%(id)s/retweeted_by/ids')
+    LOAD_OPERATION = ('GET', 'statuses/%(id)s/retweeted_by/ids')
 
 class Statuses(List):
     ITEM_CLASS = Status
 
 class Retweets(Statuses):
-    LOAD_SOURCE = ('GET', 'statuses/retweets/%(id)s')
+    LOAD_OPERATION = ('GET', 'statuses/retweets/%(id)s')
 
 class PublicTimeline(Statuses):
-    LOAD_SOURCE = ('GET', 'statuses/public_timeline')
+    LOAD_OPERATION = ('GET', 'statuses/public_timeline')
 

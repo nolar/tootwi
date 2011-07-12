@@ -50,7 +50,7 @@ class Credentials(object):
         self.api = api if api is not None else API()
     
     #??? make it protected? rename to _prepare().
-    def prepare(self, target, parameters, decoder):
+    def prepare(self, operation, parameters, decoder):
         """
         Internal utilitary function to unify preparation of arguments for
         call() and flow() methods, since the logic is the same, but their
@@ -70,7 +70,7 @@ class Credentials(object):
         # Normalize HTTP requisites:
         # Make method uppercased verb word.
         # Make url absolute; add format extension if it is not there yet; resolve parameters.
-        (method, url) = target
+        (method, url) = operation
         method = method.strip().upper()
         url = self.api.normalize_url(url, getattr(decoder, 'extension', None))
         url = url % parameters #NB: extra keys will be ignored; missed ones will cause exception.
@@ -85,19 +85,19 @@ class Credentials(object):
         """
         raise NotImplemented()
     
-    def call(self, target, parameters=None, decoder=JsonDecoder):
+    def call(self, operation, parameters=None, decoder=JsonDecoder):
         """
         Delegates the single-data call to API instance.
         Returns decoded object.
         """
-        return self.api.call(self.sign(*self.prepare(target, parameters, decoder)), decoder)
+        return self.api.call(self.sign(*self.prepare(operation, parameters, decoder)), decoder)
     
-    def flow(self, target, parameters=None, decoder=JsonDecoder):
+    def flow(self, operation, parameters=None, decoder=JsonDecoder):
         """
         Delegates the multi-data flow to API instance.
         Returns generator, which yields decoded objects.
         """
-        return self.api.flow(self.sign(*self.prepare(target, parameters, decoder)), decoder)
+        return self.api.flow(self.sign(*self.prepare(operation, parameters, decoder)), decoder)
 
 
 class OAuthCredentials(Credentials):

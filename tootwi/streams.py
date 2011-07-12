@@ -1,6 +1,8 @@
 # coding: utf-8
 
 class Stream(object):
+    OPEN_OPERATION = None
+    
     def __init__(self, api, factory=None, **kwargs):
         super(Stream, self).__init__()
         self.api = api
@@ -8,7 +10,7 @@ class Stream(object):
         self.params = kwargs
 
     def __iter__(self):
-        for data in self.api.flow(self.SOURCE, self.params):
+        for data in self.api.flow(self.OPEN_OPERATION, self.params):
             item = self.factory(self.api, data) if self.factory is not None else data
             if item is not None:
                 yield item
@@ -24,12 +26,12 @@ class Stream(object):
 
 
 class SampleStream(Stream):
-    SOURCE = ('GET' , 'http://stream.twitter.com/1/statuses/sample')
+    OPEN_OPERATION = ('GET' , 'http://stream.twitter.com/1/statuses/sample')
     def __init__(self, api, factory=None):
         super(SampleStream, self).__init__(api, factory)
 
 class FilterStream(Stream):
-    SOURCE = ('POST', 'http://stream.twitter.com/1/statuses/filter')
+    OPEN_OPERATION = ('POST', 'http://stream.twitter.com/1/statuses/filter')
     def __init__(self, api, factory=None, follow=None):
         if not isinstance(follow, basestring):
             follow = list(follow) if follow is not None else []
@@ -37,22 +39,22 @@ class FilterStream(Stream):
         super(FilterStream, self).__init__(api, factory, follow=follow)
 
 class FirehoseStream(Stream):
-    SOURCE = ('GET' , 'http://stream.twitter.com/1/statuses/firehose')
+    OPEN_OPERATION = ('GET' , 'http://stream.twitter.com/1/statuses/firehose')
     def __init__(self, api, factory=None):
         super(FirehoseStream, self).__init__(api, factory)
 
 class LinksStream(Stream):
-    SOURCE = ('GET' , 'http://stream.twitter.com/1/statuses/links')
+    OPEN_OPERATION = ('GET' , 'http://stream.twitter.com/1/statuses/links')
     def __init__(self, api, factory=None):
         super(LinksStream, self).__init__(api, factory)
 
 class RetweetStream(Stream):
-    SOURCE = ('GET' , 'http://stream.twitter.com/1/statuses/retweet')
+    OPEN_OPERATION = ('GET' , 'http://stream.twitter.com/1/statuses/retweet')
     def __init__(self, api, factory=None):
         super(RetweetStream, self).__init__(api, factory)
 
 class UserStream(Stream):
-    SOURCE = ('POST', 'https://userstream.twitter.com/2/user')
+    OPEN_OPERATION = ('POST', 'https://userstream.twitter.com/2/user')
     def __init__(self, api, factory=None):
         super(UserStream, self).__init__(api, factory)
 
