@@ -8,7 +8,8 @@ todo: unite them???
 
 import contextlib
 from .transports import DEFAULT_TRANSPORT, TransportError
-from .errors import CredentialsWrongError, RequestTargetError, RequestParametersError, RequestCallbackError, RequestAccessError
+from .errors import CredentialsWrongError, CredentialsValueError, OperationNotPermittedError, OperationNotFoundError, OperationValueError, ParametersCallbackError
+
 
 class Request(object):
     """
@@ -167,11 +168,11 @@ class API(object):
         elif 'Failed to validate oauth signature and token' in e.text: # plaintext response
             raise CredentialsWrongError('Failed to validate oauth signature and token')
         elif 'Desktop applications only support the oauth_callback value \'oob\'' in e.text: # xml response
-            raise RequestCallbackError('Desktop applications only support the oauth_callback value \'oob\'')
+            raise ParametersCallbackError('Desktop applications only support the oauth_callback value \'oob\'')
         elif e.code == 401:
-            raise RequestAccessError(e.text or 'Requested operation is not permitted with these credentials.')
+            raise OperationNotPermittedError(e.text or 'Requested operation is not permitted with these credentials.')
         elif e.code == 404:
-            raise RequestTargetError(e.text or 'Requested operation does not exist or URL is malformed.')
+            raise OperationNotFoundError(e.text or 'Requested operation does not exist or URL is malformed.')
         else:
             # If we do not know what the error is in our semantics, then it is not our problem.
             raise e

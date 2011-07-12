@@ -64,23 +64,26 @@ class OAuthRequestScenarioTest(unittest.TestCase):
     
     def testRequestForAuthorizationWithEmptyCallback(self):
         #!!! Assuming the callback domain is authorized and is of valid format (not localhost).
-        from tootwi import ApplicationCredentials, OAuthCallbackError
+        from tootwi import ApplicationCredentials
+        from tootwi.errors import ParametersCallbackError
         application_credentials = ApplicationCredentials(CONSUMER_KEY, CONSUMER_SECRET)
-        with self.assertRaises(OAuthCallbackError):
+        with self.assertRaises(ParametersCallbackError):
             temporary_credentials = application_credentials.request('')
     
     def testRequestForAuthorizationWithBadFormatCallback(self):
         #!!! Assuming the callback domain is authorized and is of valid format (not localhost).
-        from tootwi import ApplicationCredentials, OAuthCallbackError
+        from tootwi import ApplicationCredentials
+        from tootwi.errors import ParametersCallbackError
         application_credentials = ApplicationCredentials(CONSUMER_KEY, CONSUMER_SECRET)
-        with self.assertRaises(OAuthCallbackError):
+        with self.assertRaises(ParametersCallbackError):
             temporary_credentials = application_credentials.request(self.BAD_FORMAT_CALLBACK)
     
-    def testRequestForAuthorizationWithBadFormatCallback(self):
+    def testRequestForAuthorizationWithUnauthorizedCallback(self):
         #!!! Assuming the callback domain is authorized and is of valid format (not localhost).
-        from tootwi import ApplicationCredentials, OAuthCallbackError
+        from tootwi import ApplicationCredentials
+        from tootwi.errors import ParametersCallbackError
         application_credentials = ApplicationCredentials(CONSUMER_KEY, CONSUMER_SECRET)
-        with self.assertRaises(OAuthCallbackError):
+        with self.assertRaises(ParametersCallbackError):
             temporary_credentials = application_credentials.request(self.UNAUTHORIZED_CALLBACK)
 
 

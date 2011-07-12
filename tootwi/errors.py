@@ -2,16 +2,14 @@
 
 class Error(Exception): pass
 
-class CredentialsWrongError(Error): pass # wrong credentials or settings
+class CredentialsError(Error): pass
+class CredentialsWrongError(CredentialsError): pass # HTTP 401
+class CredentialsValueError(CredentialsError): pass # in case something wrong has been passed to constructor
 
-class RequestError(Error): pass
-class RequestAccessError(RequestError): pass # operation is not permitted
-class RequestTargetError(RequestError): pass # requested method+url were not found
-class RequestParametersError(RequestError): pass
-class RequestCallbackError(RequestParametersError): pass # where callback is applicable (OAuth, xAuth)
+class OperationError(Error): pass
+class OperationNotPermittedError(OperationError): pass # HTTP 403
+class OperationNotFoundError(OperationError): pass # HTTP 404
+class OperationValueError(OperationError): pass # not a tuple or bad method/url format
 
-#!!! errors hierarchy should respresent expected (by the developers) concept of HTTP codes:
-#!!!    RequestTargetError(Code404Error)
-#!!!    RequestParametersError(Code403Error)
-#!!!    CredentialsWrongError(Code401Error)
-#!!! On the other hand, we should make it abstract from the transport and rather implement the semantics.
+class ParametersError(Error): pass
+class ParametersCallbackError(ParametersError): pass
