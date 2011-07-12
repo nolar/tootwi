@@ -158,13 +158,10 @@ class API(object):
         """
         Since this class is responsible for URL structure, thus taking responsibility
         of the protocol conventions, it is also responsible for knowledge of what
-        responses can contain, and thus performing error analysis and parsing.
-        This can change in the future, since proper responsible class is not obvious.
-        It can be a transport (down the stack), or a credentials (up the stack).
-        TODO: rethink responsibilities.
+        responses can contain, and thus performs error analysis and parsing.
         """
         # Assuming TransportError is a concept of HTTP error and has status code and response text.
-        #TODO: more checks
+        #TODO: more checks for more diverse errors
         if False: # just to use "elif" for all other conditions.
             pass
         elif 'Failed to validate oauth signature and token' in e.text: # plaintext response
@@ -176,6 +173,5 @@ class API(object):
         elif e.code == 404:
             raise RequestTargetError(e.text or 'Requested operation does not exist or URL is malformed.')
         else:
-            # If we do not know what is the error in our semantics, then it is not our headache.
-            #import pdb; pdb.set_trace()
+            # If we do not know what the error is in our semantics, then it is not our problem.
             raise e
