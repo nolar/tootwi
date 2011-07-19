@@ -27,7 +27,7 @@ or its method is called. There should be no dependency imports in this module it
 since not all of them might be installed (and not all of them are really required).
 """
 
-from .api import Request, API
+from .api import SignedRequest, API
 from .models import Account
 from .decoders import JsonDecoder, FormDecoder
 
@@ -49,64 +49,26 @@ class Credentials(object):
         super(Credentials, self).__init__()
         self.api = api if api is not None else API()
     
-    #??? make it protected? rename to _prepare().
-    def prepare(self, operation, parameters, decoder):
-        """
-        Internal utilitary function to unify preparation of arguments for
-        call() and flow() methods, since the logic is the same, but their
-        code can not be unified (one is regular call, another is generator).
-        """
-        
-        # Make parameters and headers to be dictionaries, prepopulate if necessary.
-        # Headers can also be populated by linked API instance, so ask it for data too.
-        parameters = dict(parameters) if parameters is not None else {}
-        headers = {}
-        headers = self.api.normalize_headers(headers)
-        
-        # Remove Nones from parameters and headers, if for some reason they occurred there.
-        parameters = dict([(k,v) for k,v in parameters.items() if v is not None])
-        headers = dict([(k,v) for k,v in headers.items() if v is not None])
-        
-        # Check that operation is of proper format and split it into method and url.
-        #??? Maybe to move all this stuff to Operation() class and initialize it here?
-        try:
-            (method, url) = operation
-        except TypeError: # not a tuple or other iterale
-            raise OperationValueError('Operation must be a tuple of two elements.')
-        except ValueError: # a tuple/iterable, but has too few or too much elements
-            raise OperationValueError('Operation must be a tuple of two elements.')
-        
-        # Normalize HTTP requisites (method & url).
-        # Make method uppercased verb word.
-        # Make url absolute; add format extension if it is not there yet; resolve parameters.
-        extension = getattr(decoder, 'extension', None)
-        method = self.api.normalize_method(method)
-        url = self.api.normalize_url(url, extension)
-        url = url % parameters #NB: extra keys will be ignored; missed ones will cause exception.
-        
-        # The result MUST be in the same order as accepted by Credentials.sign().
-        return (method, url, parameters, headers)
-    
-    def sign(self, method, url, parameters, headers):
+    def sign(self, invocation):
         """
         Must be overriden in descendant classes.
         Returns Request instance, signed and unmutable.
         """
         raise NotImplemented()
     
-    def call(self, operation, parameters=None, decoder=JsonDecoder):
+    def call(self, operation, parameters=None, **kwargs):
         """
         Delegates the single-data call to API instance.
         Returns decoded object.
         """
-        return self.api.call(self.sign(*self.prepare(operation, parameters, decoder)), decoder)
+        return self.api.call(self.sign(self.api.invoke(operation, parameters, **kwargs)))
     
-    def flow(self, operation, parameters=None, decoder=JsonDecoder):
+    def flow(self, operation, parameters=None, **kwargs):
         """
         Delegates the multi-data flow to API instance.
         Returns generator, which yields decoded objects.
         """
-        return self.api.flow(self.sign(*self.prepare(operation, parameters, decoder)), decoder)
+        return self.api.flow(self.sign(self.api.invoke(operation, parameters, **kwargs)))
 
 
 class OAuthCredentials(Credentials):
@@ -125,8 +87,8 @@ class OAuthCredentials(Credentials):
         self.consumer_secret = consumer_secret
         self.token_key = token_key
         self.token_secret = token_secret
-
-    def sign(self, method, url, parameters, headers):
+    
+    def sign(self, invocation):
         """
         Creates and signs the request with OAuth credentials. Also add extra
         parameters required for OAuth specification (such as a timestamp, etc).
@@ -137,6 +99,10 @@ class OAuthCredentials(Credentials):
         import time
         
         # Fulfill request parameters with oauth-specific ones.
+        url = invocation.url
+        method = invocation.method
+        headers = dict(invocation.headers)
+        parameters = dict(invocation.parameters)
         parameters.update({
             'oauth_nonce': oauth.generate_nonce(),
             'oauth_version': '1.0',
@@ -173,7 +139,7 @@ class OAuthCredentials(Credentials):
 #           headers.update(request.to_header())
         
         # Return signed read-only request object as required by credentials protocol.
-        return Request(url=url, method=method, headers=headers, postdata=postdata)
+        return SignedRequest(invocation, url=url, method=method, headers=headers, postdata=postdata)
 
 
 class ApplicationCredentials(OAuthCredentials):
@@ -299,7 +265,7 @@ class BasicCredentials(Credentials):
         self.username = username
         self.password = password
     
-    def sign(self, method, url, parameters, headers):
+    def sign(self, invocation):
         """
         Creates and signs the request with HTTP Basic authorization header.
         Does not alter or takes attention to any other parameters; so this
@@ -310,8 +276,9 @@ class BasicCredentials(Credentials):
         import base64
         
         # Add basic auth HTTP header.
+        headers = dict(invocation.headers) #NB: clone it
         headers.update({
             'Authorization': 'Basic ' + base64.b64encode('%s:%s' % (self.username, self.password)),
         })
         
-        return Request(url=url, method=method, headers=headers, postdata=None)
+        return SignedRequest(invocation, url=url, method=method, headers=headers, postdata=None)

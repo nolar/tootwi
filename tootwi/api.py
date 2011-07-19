@@ -8,10 +8,40 @@ todo: unite them???
 
 import contextlib
 from .transports import DEFAULT_TRANSPORT, TransportError
+from .decoders import JsonDecoder
 from .errors import CredentialsWrongError, CredentialsValueError, OperationNotPermittedError, OperationNotFoundError, OperationValueError, ParametersCallbackError
 
+class Invocation(object):
+    def __init__(self, url, method, parameters, headers, decoder):
+        super(Invocation, self).__init__()
+        self._url = url
+        self._method = method
+        self._headers = headers
+        self._parameters = parameters
+        self._decoder = decoder
+    
+    @property
+    def url(self):
+        return self._url
+    
+    @property
+    def method(self):
+        return self._method
+    
+    @property
+    def headers(self):
+        return self._headers
+    
+    @property
+    def parameters(self):
+        return self._parameters
+    
+    @property
+    def decoder(self):
+        return self._decoder
 
-class Request(object):
+
+class SignedRequest(object):
     """
     Signed request, literally. It is created in credentials instance as
     a result of signing request parameters with user credentials. Since
@@ -20,8 +50,9 @@ class Request(object):
     These is no need to derive this class, since this one is usually enough.
     """
     
-    def __init__(self, url, method, headers, postdata):
-        super(Request, self).__init__()
+    def __init__(self, invocation, url, method, headers, postdata):
+        super(SignedRequest, self).__init__()
+        self.invocation = invocation
         self._url = url
         self._method = method
         self._headers = headers
@@ -61,16 +92,65 @@ class API(object):
     # developer's one. Otherwise, library's User-Agent is used alone.
     USER_AGENT = 'tootwi/0.0' # tootwi is for truly object-oriented twitter
     
-    def __init__(self, transport=None, throttler=None, headers={}, use_ssl=True, api_host='api.twitter.com', api_version='1'):
+    def __init__(self, transport=None, throttler=None, default_headers=None, default_decoder=None, use_ssl=True, api_host='api.twitter.com', api_version='1'):
         super(API, self).__init__()
         self.transport = transport if transport is not None else DEFAULT_TRANSPORT
         self.throttler = throttler # ??? default throttler?
-        self.headers = headers
         self.use_ssl = use_ssl
         self.api_host = api_host if api_host is not None else self.DEFAULT_API_HOST
         self.api_version = api_version if api_version is not None else self.DEFAULT_API_VERSION
+        self.default_decoder = default_decoder or JsonDecoder
+        self.default_headers = dict(default_headers) if default_headers is not None else {}
     
-    def call(self, request, decoder):
+    def invoke(self, operation, parameters=None, **kwargs):
+        """
+        Internal utilitary function to unify preparation of arguments for
+        call() and flow() methods, since the logic is the same, but their
+        code can not be unified (one is regular call, another is generator).
+        """
+        
+        # Make parameters and headers to be dictionaries, prepopulate if necessary.
+        # Headers can also be populated by linked API instance, so ask it for data too.
+        parameters = dict(parameters) if parameters is not None else {}
+        headers = dict(self.default_headers)
+        
+        parameters.update(kwargs)
+        
+        # Add User-Agent header to the headers. Append if there is one already.
+        #??? what if it has came in lower or upper case?
+        headers['User-Agent'] = ' '.join([s for s in [headers.get('User-Agent'), self.USER_AGENT] if s])
+        
+        # Remove Nones from parameters and headers, if for some reason they occurred there.
+        parameters = dict([(k,v) for k,v in parameters.items() if v is not None])
+        headers = dict([(k,v) for k,v in headers.items() if v is not None])
+        
+        # Check that operation is of proper format and split it into method and url.
+        #??? Maybe to move all this stuff to Operation() class and initialize it here?
+        try:
+            operation = tuple(operation)
+        except TypeError: # not a tuple or other iterale
+            raise OperationValueError('Operation must be a tuple of two elements.')
+        
+        if len(operation) == 3:
+            (method, url, decoder) = operation
+        elif len(operation) == 2:
+            (method, url) = operation
+            decoder = self.default_decoder
+        else:
+            raise OperationValueError('Operation must be a tuple of two elements.')
+        
+        # Normalize HTTP requisites (method & url).
+        # Make method uppercased verb word.
+        # Make url absolute; add format extension if it is not there yet; resolve parameters.
+        extension = getattr(decoder, 'extension', None)
+        method = self.normalize_method(method)
+        url = self.normalize_url(url, extension)
+        url = url % parameters #NB: extra keys will be ignored; missed ones will cause exception.
+        
+        # The result MUST be in the same order as accepted by Credentials.sign().
+        return Invocation(url, method, parameters, headers, decoder)
+    
+    def call(self, request):
         """
         Single request scenario (connect, send, recv, close).
         
@@ -82,6 +162,7 @@ class API(object):
             item = api.call((method, url), parameters)
             do_something(item)
         """
+        decoder = request.invocation.decoder
         
         if self.throttler is not None:
             self.throttler.wait() # blocking wait
@@ -99,7 +180,7 @@ class API(object):
         except TransportError, e:
             self.handle_transport_error(e)
     
-    def flow(self, request, decoder):
+    def flow(self, request):
         """
         Data flow scenario (connect, send, recv line by line, close).
         
@@ -112,6 +193,8 @@ class API(object):
                 do_something(item)
         
         """
+        decoder = request.invocation.decoder
+        
         if self.throttler:
             self.throttler.wait() # blocking wait
         if isinstance(decoder, type):
@@ -131,11 +214,16 @@ class API(object):
             self.handle_transport_error(e)
     
     def normalize_method(self, method):
+        """
+        API assumes that method is always uppercased verb. This is very important
+        for signing the request, since the verb is one of the elements to be signed.
+        This is API's responsibility to normalize all values to protocol values, since
+        these are API's restrictions and convention; also, the API owns the settings.
+        """
         return unicode(method).strip().upper()
     
     def normalize_url(self, url, extension=None):
-        assert isinstance(url, basestring)
-        assert isinstance(extension, basestring) or extension is None
+        # This method is alost used in TemporaryCredentials.url building.
         
         #NB: We do not cut extension if it is already in the url.
         #NB: This is a problem of developer who specifies methods such a way.
@@ -148,15 +236,6 @@ class API(object):
             return '%s://%s/%s%s' % (schema, self.api_host, url.strip('/'), extension)
         else:
             return '%s://%s/%s/%s%s' % (schema, self.api_host, self.api_version, url.strip('/'), extension)
-    
-    def normalize_headers(self, headers):
-        assert isinstance(headers, dict)
-        
-        # Add User-Agent header to the headers. Append if there is one already.
-        #??? what if it has came in lower or upper case?
-        headers['User-Agent'] = ' '.join([s for s in [headers.get('User-Agent'), self.USER_AGENT] if s])
-        
-        return headers
     
     def handle_transport_error(self, e):
         """
