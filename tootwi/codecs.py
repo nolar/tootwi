@@ -11,19 +11,33 @@ extension is specified, then no extension is added to the URL (same as if it
 was None or an empty string).
 """
 
+
 class Codec(object):
-    def __call__(self, data):
+    def decode(self, data):
         raise NotImplemented()
+
+
+class ExternalCodec(Codec):
+    def __init__(self, cb):
+        super(ExternalCodec, self).__init__()
+        if not callable(cb):
+            raise ExternalCodecBadCallable("External codec requires callable argument.")
+        self.cb = cb
+    
+    def decode(self, data):
+        return self.cb(data)
+
 
 class FormCodec(Codec):
     """
     Decodes application/x-www-form-urlencoded response. It is used in OAuth
     authorization ("three-stage dance"). No extension is added to the URL.
     """
-    def __call__(self, data):
+    def decode(self, data):
         assert isinstance(data, basestring)
         import urlparse
         return dict(urlparse.parse_qsl(data, keep_blank_values=True, strict_parsing=True))
+
 
 class JsonCodec(Codec):
     """
@@ -34,7 +48,7 @@ class JsonCodec(Codec):
     string, then returns None; empty strings are used in streams as keep-alives.
     """
     extension = 'json'
-    def __call__(self, data):
+    def decode(self, data):
         assert isinstance(data, basestring)
         import json
         return json.loads(data, 'utf8') if data.strip() else None

@@ -8,8 +8,9 @@ todo: unite them???
 
 import contextlib
 from .transports import DEFAULT_TRANSPORT, TransportError
-from .codecs import JsonCodec
+from .codecs import Codec, ExternalCodec, JsonCodec
 from .errors import CredentialsWrongError, CredentialsValueError, OperationNotPermittedError, OperationNotFoundError, OperationValueError, ParametersCallbackError
+
 
 class Invocation(object):
     def __init__(self, url, method, parameters, headers, codec):
@@ -135,9 +136,19 @@ class API(object):
             (method, url, codec) = operation
         elif len(operation) == 2:
             (method, url) = operation
-            codec = self.default_codec
+            codec = None
         else:
             raise OperationValueError('Operation must be a tuple of two elements.')
+        
+        # Normalize coded and make it Codec class instance, no matter what it originally is.
+        # If this is a class, then instantiate it. Note it could be non-Codec class too.
+        # If this is something except Codec instance, assume it is a callable/function.
+        if codec is None:
+            codec = self.default_codec
+        if isinstance(codec, type):
+            codec = codec()
+        if not isinstance(codec, Codec):
+            codec = ExternalCodec(codec)
         
         # Normalize HTTP requisites (method & url).
         # Make method uppercased verb word.
@@ -162,19 +173,15 @@ class API(object):
             item = api.call((method, url), parameters)
             do_something(item)
         """
-        codec = request.invocation.codec
-        
         if self.throttler is not None:
             self.throttler.wait() # blocking wait
-        if isinstance(codec, type):
-            codec = codec()
         
         # Error might raise at any stage: connect, send, recv, parse, close -- all is the same for us.
         try:
             with contextlib.closing(self.transport(request)) as handle:
                 print('Requesting...')#!!!
                 line = handle.read()
-                data = codec(line)
+                data = request.invocation.codec.decode(line)
                 print('DONE...')#!!!
                 return data
         except TransportError, e:
@@ -193,12 +200,8 @@ class API(object):
                 do_something(item)
         
         """
-        codec = request.invocation.codec
-        
         if self.throttler:
             self.throttler.wait() # blocking wait
-        if isinstance(codec, type):
-            codec = codec()
         
         #!!! flows/streams are cnceptually non-close-able when exception happens inside for cycle (i.e., outside of generator).
         # Error might raise at any stage: connect, send, recv, parse, close -- all is the same for us.
@@ -207,7 +210,7 @@ class API(object):
                 print('Iterating...')#!!!
                 while True:
                     line = handle.readline()
-                    data = codec(line)
+                    data = request.invocation.codec.decode(line)
                     yield data
                 print('DONE...')#!!!
         except TransportError, e:
