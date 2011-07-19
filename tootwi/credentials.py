@@ -83,6 +83,10 @@ class OAuthCredentials(Credentials):
     
     def __init__(self, consumer_key, consumer_secret, token_key, token_secret, api=None):
         super(OAuthCredentials, self).__init__(api=api)
+        if consumer_key is None or consumer_secret is None:
+            raise CredentialsValueError("Consumer key & secret must be specified.")
+        if (token_key is None and token_secret is not None) or (token_key is not None and token_secret is None):
+            raise CredentialsValueError("Token key & secret must be specified both or none of them.")
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
         self.token_key = token_key
@@ -262,6 +266,10 @@ class BasicCredentials(Credentials):
     
     def __init__(self, username, password, api=None):
         super(BasicCredentials, self).__init__(api=api)
+        if not username :
+            raise CredentialsValueError("Username must be set.")
+        if not password:
+            raise CredentialsValueError("Password must be set.")
         self.username = username
         self.password = password
     
