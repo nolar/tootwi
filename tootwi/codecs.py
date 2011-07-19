@@ -11,6 +11,8 @@ extension is specified, then no extension is added to the URL (same as if it
 was None or an empty string).
 """
 
+from .errors import ExternalCodecCallableError
+
 
 class Codec(object):
     def decode(self, data):
@@ -21,7 +23,7 @@ class ExternalCodec(Codec):
     def __init__(self, cb):
         super(ExternalCodec, self).__init__()
         if not callable(cb):
-            raise ExternalCodecBadCallable("External codec requires callable argument.")
+            raise ExternalCodecCallableError("External codec requires callable argument.")
         self.cb = cb
     
     def decode(self, data):

@@ -2,8 +2,6 @@
 """
 Utilitary classes to contain extended and/or prepared information when performing
 API calls in credentials classes.
-
-todo: unite them???
 """
 
 import contextlib
@@ -126,7 +124,6 @@ class API(object):
         headers = dict([(k,v) for k,v in headers.items() if v is not None])
         
         # Check that operation is of proper format and split it into method and url.
-        #??? Maybe to move all this stuff to Operation() class and initialize it here?
         try:
             operation = tuple(operation)
         except TypeError: # not a tuple or other iterale
@@ -179,10 +176,8 @@ class API(object):
         # Error might raise at any stage: connect, send, recv, parse, close -- all is the same for us.
         try:
             with contextlib.closing(self.transport(request)) as handle:
-                print('Requesting...')#!!!
                 line = handle.read()
                 data = request.invocation.codec.decode(line)
-                print('DONE...')#!!!
                 return data
         except TransportError, e:
             self.handle_transport_error(e)
@@ -203,16 +198,13 @@ class API(object):
         if self.throttler:
             self.throttler.wait() # blocking wait
         
-        #!!! flows/streams are cnceptually non-close-able when exception happens inside for cycle (i.e., outside of generator).
         # Error might raise at any stage: connect, send, recv, parse, close -- all is the same for us.
         try:
             with contextlib.closing(self.transport(request)) as handle:
-                print('Iterating...')#!!!
                 while True:
                     line = handle.readline()
                     data = request.invocation.codec.decode(line)
                     yield data
-                print('DONE...')#!!!
         except TransportError, e:
             self.handle_transport_error(e)
     
