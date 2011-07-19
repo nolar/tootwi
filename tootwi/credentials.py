@@ -29,7 +29,7 @@ since not all of them might be installed (and not all of them are really require
 
 from .api import SignedRequest, API
 from .models import Account
-from .decoders import JsonDecoder, FormDecoder
+from .codecs import FormCodec
 
 
 class Credentials(object):
@@ -155,7 +155,7 @@ class ApplicationCredentials(OAuthCredentials):
     it still can access anonymous information, such as public streams, etc.
     """
     
-    REQUEST_TOKEN = ('POST', '/oauth/request_token') #NB: no version
+    REQUEST_TOKEN = ('POST', '/oauth/request_token', FormCodec) #NB: no version
     
     def __init__(self, consumer_key, consumer_secret, api=None):
         super(ApplicationCredentials, self).__init__(api=api,
@@ -174,7 +174,7 @@ class ApplicationCredentials(OAuthCredentials):
         Returns fulfilled TemporaryCredentials in case of success, so you can
         use it immedialy for user redirection and/or verification.
         """
-        result = self.call(self.REQUEST_TOKEN, dict(oauth_callback = callback), decoder=FormDecoder)
+        result = self.call(self.REQUEST_TOKEN, dict(oauth_callback = callback))
         return TemporaryCredentials(api=self.api,
             consumer_key = self.consumer_key,
             consumer_secret = self.consumer_secret,
@@ -191,8 +191,8 @@ class TemporaryCredentials(OAuthCredentials):
     the request for authorization was made, but not yet confirmed by the user.
     """
     
-    VERIFY_TOKEN  = ('POST', '/oauth/access_token') #NB: no version
-    VERIFICATION_URL = '/oauth/authorize' #NB: no version
+    VERIFY_TOKEN  = ('POST', '/oauth/access_token', FormCodec) #NB: no version
+    VERIFICATION_URL = '/oauth/authorize' #NB: no version, no method and codec (just url)
     
     def __init__(self, consumer_key, consumer_secret, request_token_key, request_token_secret, callback_confirmed=None, api=None):
         super(TemporaryCredentials, self).__init__(api=api,
@@ -222,7 +222,7 @@ class TemporaryCredentials(OAuthCredentials):
         Returns fulfilled TokenCredentials in case of success, so you can
         use it immedialy for API calls or models.
         """
-        result = self.call(self.VERIFY_TOKEN, dict(oauth_verifier = verifier), decoder=FormDecoder)
+        result = self.call(self.VERIFY_TOKEN, dict(oauth_verifier = verifier))
         return TokenCredentials(api=self.api,
             consumer_key = self.consumer_key,
             consumer_secret = self.consumer_secret,

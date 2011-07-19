@@ -8,17 +8,17 @@ todo: unite them???
 
 import contextlib
 from .transports import DEFAULT_TRANSPORT, TransportError
-from .decoders import JsonDecoder
+from .codecs import JsonCodec
 from .errors import CredentialsWrongError, CredentialsValueError, OperationNotPermittedError, OperationNotFoundError, OperationValueError, ParametersCallbackError
 
 class Invocation(object):
-    def __init__(self, url, method, parameters, headers, decoder):
+    def __init__(self, url, method, parameters, headers, codec):
         super(Invocation, self).__init__()
         self._url = url
         self._method = method
         self._headers = headers
         self._parameters = parameters
-        self._decoder = decoder
+        self._codec = codec
     
     @property
     def url(self):
@@ -37,8 +37,8 @@ class Invocation(object):
         return self._parameters
     
     @property
-    def decoder(self):
-        return self._decoder
+    def codec(self):
+        return self._codec
 
 
 class SignedRequest(object):
@@ -92,14 +92,14 @@ class API(object):
     # developer's one. Otherwise, library's User-Agent is used alone.
     USER_AGENT = 'tootwi/0.0' # tootwi is for truly object-oriented twitter
     
-    def __init__(self, transport=None, throttler=None, default_headers=None, default_decoder=None, use_ssl=True, api_host='api.twitter.com', api_version='1'):
+    def __init__(self, transport=None, throttler=None, default_headers=None, default_codec=None, use_ssl=True, api_host='api.twitter.com', api_version='1'):
         super(API, self).__init__()
         self.transport = transport if transport is not None else DEFAULT_TRANSPORT
         self.throttler = throttler # ??? default throttler?
         self.use_ssl = use_ssl
         self.api_host = api_host if api_host is not None else self.DEFAULT_API_HOST
         self.api_version = api_version if api_version is not None else self.DEFAULT_API_VERSION
-        self.default_decoder = default_decoder or JsonDecoder
+        self.default_codec = default_codec or JsonCodec
         self.default_headers = dict(default_headers) if default_headers is not None else {}
     
     def invoke(self, operation, parameters=None, **kwargs):
@@ -132,23 +132,23 @@ class API(object):
             raise OperationValueError('Operation must be a tuple of two elements.')
         
         if len(operation) == 3:
-            (method, url, decoder) = operation
+            (method, url, codec) = operation
         elif len(operation) == 2:
             (method, url) = operation
-            decoder = self.default_decoder
+            codec = self.default_codec
         else:
             raise OperationValueError('Operation must be a tuple of two elements.')
         
         # Normalize HTTP requisites (method & url).
         # Make method uppercased verb word.
         # Make url absolute; add format extension if it is not there yet; resolve parameters.
-        extension = getattr(decoder, 'extension', None)
+        extension = getattr(codec, 'extension', None)
         method = self.normalize_method(method)
         url = self.normalize_url(url, extension)
         url = url % parameters #NB: extra keys will be ignored; missed ones will cause exception.
         
         # The result MUST be in the same order as accepted by Credentials.sign().
-        return Invocation(url, method, parameters, headers, decoder)
+        return Invocation(url, method, parameters, headers, codec)
     
     def call(self, request):
         """
@@ -162,19 +162,19 @@ class API(object):
             item = api.call((method, url), parameters)
             do_something(item)
         """
-        decoder = request.invocation.decoder
+        codec = request.invocation.codec
         
         if self.throttler is not None:
             self.throttler.wait() # blocking wait
-        if isinstance(decoder, type):
-            decoder = decoder()
+        if isinstance(codec, type):
+            codec = codec()
         
         # Error might raise at any stage: connect, send, recv, parse, close -- all is the same for us.
         try:
             with contextlib.closing(self.transport(request)) as handle:
                 print('Requesting...')#!!!
                 line = handle.read()
-                data = decoder(line)
+                data = codec(line)
                 print('DONE...')#!!!
                 return data
         except TransportError, e:
@@ -193,12 +193,12 @@ class API(object):
                 do_something(item)
         
         """
-        decoder = request.invocation.decoder
+        codec = request.invocation.codec
         
         if self.throttler:
             self.throttler.wait() # blocking wait
-        if isinstance(decoder, type):
-            decoder = decoder()
+        if isinstance(codec, type):
+            codec = codec()
         
         #!!! flows/streams are cnceptually non-close-able when exception happens inside for cycle (i.e., outside of generator).
         # Error might raise at any stage: connect, send, recv, parse, close -- all is the same for us.
@@ -207,7 +207,7 @@ class API(object):
                 print('Iterating...')#!!!
                 while True:
                     line = handle.readline()
-                    data = decoder(line)
+                    data = codec(line)
                     yield data
                 print('DONE...')#!!!
         except TransportError, e:
