@@ -11,7 +11,7 @@ extension is specified, then no extension is added to the URL (same as if it
 was None or an empty string).
 """
 
-from .errors import ExternalCodecCallableError
+from .errors import ExternalCodecCallableError, CodecValueIsNotStringError
 
 
 class Codec(object):
@@ -35,10 +35,22 @@ class FormCodec(Codec):
     Decodes application/x-www-form-urlencoded response. It is used in OAuth
     authorization ("three-stage dance"). No extension is added to the URL.
     """
+    extension = None
     def decode(self, data):
-        assert isinstance(data, basestring)
         import urlparse
-        return dict(urlparse.parse_qsl(data, keep_blank_values=True, strict_parsing=True))
+        if not isinstance(data, basestring):
+            raise CodecValueIsNotStringError("Cannot decode value which is not string.")
+        data = data.strip()
+        vals = dict(urlparse.parse_qsl(data, keep_blank_values=True, strict_parsing=True)) if data else {}
+        return dict([(self.force_unicode(k), self.force_unicode(v)) for k,v in vals.items()])
+    
+    def force_unicode(self, s, encoding='utf8'):
+        if isinstance(s, unicode):
+            return s
+        else:
+            return unicode(s, encoding)
+
+
 
 
 class JsonCodec(Codec):
@@ -51,6 +63,8 @@ class JsonCodec(Codec):
     """
     extension = 'json'
     def decode(self, data):
-        assert isinstance(data, basestring)
         import json
-        return json.loads(data, 'utf8') if data.strip() else None
+        if not isinstance(data, basestring):
+            raise CodecValueIsNotStringError("Cannot decode value which is not string.")
+        data = data.strip()
+        return json.loads(data, 'utf8') if data else None

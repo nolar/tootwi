@@ -15,4 +15,6 @@ class ParametersError(Error): pass
 class ParametersCallbackError(ParametersError): pass
 
 class CodecError(Error): pass
+class CodecValueError(Error): pass
+class CodecValueIsNotStringError(CodecValueError): pass
 class ExternalCodecCallableError(CodecError): pass
