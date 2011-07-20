@@ -5,7 +5,6 @@ class FormCodecTest(unittest.TestCase):
     def setUp(self):
         from tootwi.codecs import FormCodec
         self.codec = FormCodec()
-        self.extension = None
     
     def test_creation_with_no_arguments(self):
         from tootwi.codecs import Codec
@@ -45,7 +44,6 @@ class JsonCodecTest(unittest.TestCase):
     def setUp(self):
         from tootwi.codecs import JsonCodec
         self.codec = JsonCodec()
-        self.extension = 'json'
     
     def test_creation_with_no_arguments(self):
         from tootwi.codecs import Codec
