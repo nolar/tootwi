@@ -1,13 +1,14 @@
+#!/usr/bin/env python
+import settings # must have! it contains sys.path adjustments.
 import datetime
 from tootwi import ApplicationCredentials
-from settings import CONSUMER_KEY, CONSUMER_SECRET
 
 def main():
     
     #
     # Stage 1 of 3: make request and gain temporary credentials.
     #
-    application_credentials = ApplicationCredentials(CONSUMER_KEY, CONSUMER_SECRET)
+    application_credentials = ApplicationCredentials(settings.CONSUMER_KEY, settings.CONSUMER_SECRET)
     temporary_credentials = application_credentials.request()
     
     #

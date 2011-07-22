@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+import settings # must have! it contains sys.path adjustments.
 import unittest2 as unittest
 
 class ExternalCodecTest(unittest.TestCase):

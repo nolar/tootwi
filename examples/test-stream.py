@@ -1,10 +1,11 @@
+#!/usr/bin/env python
+import settings # must have! it contains sys.path adjustments.
 import datetime
 from tootwi import TokenCredentials
 from tootwi.streams import SampleStream, FilterStream, MessageFactory
-from settings import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET
 
 def main():
-    credentials = TokenCredentials(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET)
+    credentials = TokenCredentials(settings.CONSUMER_KEY, settings.CONSUMER_SECRET, settings.ACCESS_KEY, settings.ACCESS_SECRET)
 
 #   stream = FilterStream(credentials, MessageFactory(), follow=[16132160,313826855])
     stream = SampleStream(credentials, MessageFactory())
