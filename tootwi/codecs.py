@@ -27,7 +27,10 @@ class ExternalCodec(Codec):
         self.cb = cb
     
     def decode(self, data):
-        return self.cb(data)
+        if not isinstance(data, basestring):
+            raise CodecValueIsNotStringError("Cannot decode value which is not string.")
+        data = data.strip()
+        return None if not data else self.cb(data)
 
 
 class FormCodec(Codec):

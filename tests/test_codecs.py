@@ -1,5 +1,34 @@
 import unittest2 as unittest
-from settings import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET
+
+class ExternalCodecTest(unittest.TestCase):
+    def callback(self, data):
+        return [1,2,3]
+    
+    def setUp(self):
+        from tootwi.codecs import ExternalCodec
+        self.codec = ExternalCodec(self.callback)
+    
+    def test_creation(self):
+        from tootwi.codecs import Codec
+        self.assertIsInstance(self.codec, Codec)
+        self.assertEqual(self.codec.extension, None)
+    
+    def test_decoding_of_none_sample_fails(self):
+        from tootwi.errors import CodecValueIsNotStringError
+        with self.assertRaises(CodecValueIsNotStringError):
+            result = self.codec.decode(None)
+    
+    def test_decoding_of_empty_sample(self):
+        result = self.codec.decode('')
+        self.assertEqual(result, None)
+    
+    def test_decoding_of_space_sample(self):
+        result = self.codec.decode(' ')
+        self.assertEqual(result, None)
+    
+    def test_decoding_of_ascii_sample(self):
+        result = self.codec.decode('our callback ignores all values')
+        self.assertEqual(result, [1,2,3])
 
 
 class FormCodecTest(unittest.TestCase):
@@ -7,7 +36,7 @@ class FormCodecTest(unittest.TestCase):
         from tootwi.codecs import FormCodec
         self.codec = FormCodec()
     
-    def test_creation_with_no_arguments(self):
+    def test_creation(self):
         from tootwi.codecs import Codec
         self.assertIsInstance(self.codec, Codec)
         self.assertEqual(self.codec.extension, None)
@@ -45,7 +74,7 @@ class JsonCodecTest(unittest.TestCase):
         from tootwi.codecs import JsonCodec
         self.codec = JsonCodec()
     
-    def test_creation_with_no_arguments(self):
+    def test_creation(self):
         from tootwi.codecs import Codec
         self.assertIsInstance(self.codec, Codec)
         self.assertEqual(self.codec.extension, 'json')
