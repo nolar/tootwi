@@ -3,12 +3,12 @@
 # Versioning routines:
 # Idea from http://stackoverflow.com/questions/2058802/how-can-i-get-the-version-defined-in-setup-py-setuptools-in-my-package
 # Code from https://github.com/warner/python-ecdsa/blob/0ed702a9d4057ecf33eea969b8cf280eaccd89a1/setup.py#L34
-# Altered to support any version tagging convention and to configure version.py location.
+# Altered to support any version tagging convention and version.py location.
 #
 
 import os, sys, subprocess, re
-from distutils.core import setup, Command
-from distutils.command.sdist import sdist as _sdist
+from setuptools import setup, find_packages, Command
+from setuptools.command.sdist import sdist as _sdist
 
 VERSION_PY_PATH = "tootwi/_version.py"
 VERSION_PY_TEXT = """
@@ -76,28 +76,29 @@ class sdist(_sdist):
         self.distribution.metadata.version = get_version()
         return _sdist.run(self)
 
-LONG_DESCRIPTION = '''
-TooTwi is a python library for Twitter API, intended to be truly object-oriented,
-extendible and fast, supporting all Twitter API methods, both current and future.
 
-* Easy OAuth three-stage authorization (depends on oauth2).
-* OAuth and basic auth support (still allowed in streams).
-* Object-oriented data models with mutual relations.
-* Easyness of inheritance and enhancement.
-* Streams iterators.
-'''
+def read(filename):
+    """Used to read README file below."""
+    return file(os.path.join(os.path.dirname(__file__), filename)).read()
+
 
 setup(
+    # Packaging and maintenance information.
     name='tootwi',
     version=get_version(),
+    packages=find_packages(),
+    zip_safe=True,
+    test_suite='tests',
+    cmdclass={ "version": version, "sdist": sdist },
+    
+    # Descriptive information.
+    url='http://github.com/nolar/tootwi',
     author='Sergey Vasilyev',
     author_email='nolar@nolar.info',
-    url='http://github.com/nolar/tootwi',
-    description='Twitter API object-oriented library (pure python)',
-    long_description=LONG_DESCRIPTION,
     license='BSD',
-    packages=['tootwi'],
-    cmdclass={ "version": version, "sdist": sdist },
+    keywords='twitter api oop object-oriented oauth stream streams',
+    description='Twitter API object-oriented library (pure python)',
+    long_description=read('README'),
     classifiers=[
         'Development Status :: 1 - Planning',
         'Environment :: Web Environment',

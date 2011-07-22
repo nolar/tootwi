@@ -1,7 +1,7 @@
 = ABOUT =
 
-TooTwi is a python library for Twitter API, intended to be truly object-oriented, extendible and fast.
-
+TooTwi is a python library for Twitter API, intended to be truly object-oriented,
+extendible and fast, yet supporting all Twitter API methods, current and future.
 
 = FEATURES =
 

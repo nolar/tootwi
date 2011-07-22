@@ -3,4 +3,5 @@ examples/settings.py
 tests/settings.py
 Thumbs.db
 dist
+tootwi.egg-info
 MANIFEST
