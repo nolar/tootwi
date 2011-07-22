@@ -1,4 +1,5 @@
 *.pyc
-settings.py
+examples/settings.py
 Thumbs.db
 dist
+MANIFEST
