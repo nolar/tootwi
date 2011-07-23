@@ -83,14 +83,15 @@ def read(filename):
 
 
 setup(
-    # Packaging and maintenance information.
+    # Packaging information.
     name='tootwi',
     version=get_version(),
-    packages=['tootwi'],
-    zip_safe=True,
-    test_suite='tests',
-    cmdclass={ "version": version, "sdist": sdist },
+    
+    # Maintenance and code layout information
     package_dir = {'': 'src'},
+    packages=find_packages('src', exclude=['tests']),
+    test_suite='tests',
+    cmdclass={ 'version': version, 'sdist': sdist },
     
     # Descriptive information.
     url='http://github.com/nolar/tootwi',

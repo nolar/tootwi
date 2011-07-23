@@ -1,7 +1,6 @@
 *.pyc
+*.egg-info
 src/examples/settings.py
 src/tests/settings.py
-Thumbs.db
 dist
-tootwi.egg-info
-MANIFEST
+Thumbs.db
