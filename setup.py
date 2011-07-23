@@ -15,7 +15,7 @@ import os, sys, subprocess, re
 from setuptools import setup, find_packages, Command
 from setuptools.command.sdist import sdist as _sdist
 
-VERSION_PY_PATH = "src/tootwi/_version.py"
+VERSION_PY_PATH = "tootwi/_version.py"
 VERSION_PY_TEXT = """
 # This file is generated from Git information by running 'setup.py version'.
 # Distribution tarballs contain a pre-generated copy of this file.
@@ -94,8 +94,7 @@ setup(
     version=get_version(),
     
     # Maintenance and code layout information.
-    package_dir = {'': 'src'},
-    packages=find_packages('src', exclude=['tests']),
+    packages=find_packages(exclude=['tests']),
     test_suite='tests',
     cmdclass={ 'version': version, 'sdist': sdist },
     

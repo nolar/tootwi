@@ -1,6 +1,6 @@
-*.pyc
-*.egg-info
-src/examples/settings.py
-src/tests/settings.py
 dist
-Thumbs.db
+build
+*.egg-info
+*.pyc
+examples/settings.py
+tests/settings.py
