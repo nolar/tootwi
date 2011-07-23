@@ -1,6 +1,6 @@
 *.pyc
-examples/settings.py
-tests/settings.py
+src/examples/settings.py
+src/tests/settings.py
 Thumbs.db
 dist
 tootwi.egg-info

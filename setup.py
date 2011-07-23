@@ -86,10 +86,11 @@ setup(
     # Packaging and maintenance information.
     name='tootwi',
     version=get_version(),
-    packages=find_packages(),
+    packages=['tootwi'],
     zip_safe=True,
     test_suite='tests',
     cmdclass={ "version": version, "sdist": sdist },
+    package_dir = {'': 'src'},
     
     # Descriptive information.
     url='http://github.com/nolar/tootwi',
