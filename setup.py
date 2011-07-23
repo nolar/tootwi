@@ -15,10 +15,11 @@ import os, sys, subprocess, re
 from setuptools import setup, find_packages, Command
 from setuptools.command.sdist import sdist as _sdist
 
-VERSION_PY_PATH = "tootwi/_version.py"
+VERSION_PY_PATH = "src/tootwi/_version.py"
 VERSION_PY_TEXT = """
 # This file is generated from Git information by running 'setup.py version'.
 # Distribution tarballs contain a pre-generated copy of this file.
+
 __version__ = '%s'
 """
 
@@ -92,13 +93,13 @@ setup(
     name='tootwi',
     version=get_version(),
     
-    # Maintenance and code layout information
+    # Maintenance and code layout information.
     package_dir = {'': 'src'},
     packages=find_packages('src', exclude=['tests']),
     test_suite='tests',
     cmdclass={ 'version': version, 'sdist': sdist },
     
-    # Descriptive information.
+    # Descriptive information used for registering.
     url='http://github.com/nolar/tootwi',
     author='Sergey Vasilyev',
     author_email='nolar@nolar.info',
