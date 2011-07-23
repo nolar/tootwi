@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import settings # must have! it contains sys.path adjustments.
+import settings
 import datetime
 from tootwi import ApplicationCredentials
 

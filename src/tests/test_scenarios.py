@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import settings # must have! it contains sys.path adjustments.
+import settings
 import unittest2 as unittest
 
 
