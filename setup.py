@@ -6,6 +6,11 @@
 # Altered to support any version tagging convention and version.py location.
 #
 
+# Make sure setup.py can work with no setuptools installed initially.
+# See ez_setup.py for details (this trick is part of easyinstall).
+from ez_setup import use_setuptools
+use_setuptools()
+
 import os, sys, subprocess, re
 from setuptools import setup, find_packages, Command
 from setuptools.command.sdist import sdist as _sdist
