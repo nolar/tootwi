@@ -4,3 +4,4 @@ build
 *.pyc
 examples/settings.py
 tests/settings.py
+tootwi/_version.py
