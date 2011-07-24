@@ -84,14 +84,14 @@ class APIInvokeParametersTests(APITest):
         from tootwi.formats import Format
         invocation = self.api.invoke(FAKE_OPERATION)
         self.assertIsInstance(invocation, Invocation)
-        self.assertEqual(invocation.parameters, {})
+        self.assertDictEqual(invocation.parameters, {})
     
     def test_invoke_with_mixed_parameters(self):
         from tootwi.api import Invocation
         from tootwi.formats import Format
         invocation = self.api.invoke(FAKE_OPERATION, {'c':789}, a=123, b=456)
         self.assertIsInstance(invocation, Invocation)
-        self.assertEqual(invocation.parameters, {'a':123, 'b':456, 'c':789})
+        self.assertDictEqual(invocation.parameters, {'a':123, 'b':456, 'c':789})
 
 
 class APINormalizationTests(APITest):
@@ -146,10 +146,7 @@ class APIOverallTests(unittest.TestCase):
         from tootwi import API
         api = API(headers={'hello':'world', 'empty':''})
         invocation = api.invoke(FAKE_OPERATION)
-        self.assertIn('hello', invocation.headers)
-        self.assertEqual(invocation.headers['hello'], 'world')
-        self.assertIn('empty', invocation.headers)
-        self.assertEqual(invocation.headers['empty'], '')
+        self.assertDictContainsSubset({'hello':'world', 'empty':''}, invocation.headers)
     
     def test_headers_cleaned_from_nones(self):
         from tootwi import API

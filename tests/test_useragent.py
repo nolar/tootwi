@@ -65,7 +65,7 @@ class UserAgentAutomaticGenerationTest(unittest.TestCase):
         try:
             from tootwi._version import __version__ as expected_version
         except ImportError:
-            return # skip
+            self.skipTest('no original version file present')
         
         import tootwi
         api = tootwi.API()

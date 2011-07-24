@@ -58,5 +58,8 @@ class OAuthConfirmScenarioTest(unittest.TestCase):
     pass
 
 
+#!!! test for errornous scenarios for each of the API.handle_transport_error() cases.
+
+
 if __name__ == '__main__':
     unittest.main()
