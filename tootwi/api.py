@@ -97,7 +97,7 @@ class API(object):
     # developer's one. Otherwise, library's User-Agent is used alone.
     USER_AGENT = 'tootwi/%s' % __version__
     
-    def __init__(self, transport=None, throttler=None, default_headers=None, default_codec=None, use_ssl=True, api_host='api.twitter.com', api_version='1'):
+    def __init__(self, transport=None, throttler=None, headers=None, default_codec=None, use_ssl=True, api_host='api.twitter.com', api_version='1'):
         super(API, self).__init__()
         self.transport = transport if transport is not None else DEFAULT_TRANSPORT
         self.throttler = throttler # ??? default throttler?
@@ -105,7 +105,7 @@ class API(object):
         self.api_host = api_host if api_host is not None else self.DEFAULT_API_HOST
         self.api_version = api_version if api_version is not None else self.DEFAULT_API_VERSION
         self.default_codec = default_codec or JsonCodec
-        self.default_headers = dict(default_headers) if default_headers is not None else {}
+        self.headers = dict(headers) if headers is not None else {}
     
     def invoke(self, operation, parameters=None, **kwargs):
         """
@@ -117,13 +117,14 @@ class API(object):
         # Make parameters and headers to be dictionaries, prepopulate if necessary.
         # Headers can also be populated by linked API instance, so ask it for data too.
         parameters = dict(parameters) if parameters is not None else {}
-        headers = dict(self.default_headers)
+        headers = dict(self.headers)
         
         parameters.update(kwargs)
         
         # Add User-Agent header to the headers. Append if there is one already.
-        #??? what if it has came in lower or upper case?
-        headers['User-Agent'] = ' '.join([s for s in [headers.get('User-Agent'), self.USER_AGENT] if s])
+        lowered_keys = dict(map(lambda s: (s.lower(), s), headers.keys()))
+        user_agent_key = lowered_keys.get('user-agent', 'User-Agent')
+        headers[user_agent_key] = ' '.join([s for s in [headers.get(user_agent_key), self.USER_AGENT] if s])
         
         # Remove Nones from parameters and headers, if for some reason they occurred there.
         parameters = dict([(k,v) for k,v in parameters.items() if v is not None])
