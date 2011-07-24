@@ -29,7 +29,7 @@ since not all of them might be installed (and not all of them are really require
 
 from .api import SignedRequest, API
 from .models import Account
-from .codecs import FormCodec
+from .formats import FormFormat
 
 
 class Credentials(object):
@@ -155,7 +155,7 @@ class ApplicationCredentials(OAuthCredentials):
     it still can access anonymous information, such as public streams, etc.
     """
     
-    REQUEST_TOKEN = ('POST', '/oauth/request_token', FormCodec) #NB: no version
+    REQUEST_TOKEN = ('POST', '/oauth/request_token', FormFormat) #NB: no version
     
     def __init__(self, consumer_key, consumer_secret, api=None):
         super(ApplicationCredentials, self).__init__(api=api,
@@ -191,8 +191,8 @@ class TemporaryCredentials(OAuthCredentials):
     the request for authorization was made, but not yet confirmed by the user.
     """
     
-    VERIFY_TOKEN  = ('POST', '/oauth/access_token', FormCodec) #NB: no version
-    VERIFICATION_URL = '/oauth/authorize' #NB: no version, no method and codec (just url)
+    VERIFY_TOKEN  = ('POST', '/oauth/access_token', FormFormat) #NB: no version
+    VERIFICATION_URL = '/oauth/authorize' #NB: no version, no method and format (just url)
     
     def __init__(self, consumer_key, consumer_secret, request_token_key, request_token_secret, callback_confirmed=None, api=None):
         super(TemporaryCredentials, self).__init__(api=api,

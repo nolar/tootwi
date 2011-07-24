@@ -6,7 +6,7 @@ API calls in credentials classes.
 
 import contextlib
 from .transports import DEFAULT_TRANSPORT, TransportError
-from .codecs import Codec, ExternalCodec, JsonCodec
+from .formats import Format, ExternalFormat, JsonFormat
 from .errors import CredentialsWrongError, CredentialsValueError, OperationNotPermittedError, OperationNotFoundError, OperationValueError, ParametersCallbackError
 
 # Retrieve version information if available, to use in User-Agent header in API class.
@@ -17,13 +17,13 @@ except ImportError:
 
 
 class Invocation(object):
-    def __init__(self, url, method, parameters, headers, codec):
+    def __init__(self, url, method, parameters, headers, format):
         super(Invocation, self).__init__()
         self._url = url
         self._method = method
         self._headers = headers
         self._parameters = parameters
-        self._codec = codec
+        self._format = format
     
     @property
     def url(self):
@@ -42,8 +42,8 @@ class Invocation(object):
         return self._parameters
     
     @property
-    def codec(self):
-        return self._codec
+    def format(self):
+        return self._format
 
 
 class SignedRequest(object):
@@ -97,14 +97,14 @@ class API(object):
     # developer's one. Otherwise, library's User-Agent is used alone.
     USER_AGENT = 'tootwi/%s' % __version__
     
-    def __init__(self, transport=None, throttler=None, headers=None, default_codec=None, use_ssl=True, api_host='api.twitter.com', api_version='1'):
+    def __init__(self, transport=None, throttler=None, headers=None, default_format=None, use_ssl=True, api_host='api.twitter.com', api_version='1'):
         super(API, self).__init__()
         self.transport = transport if transport is not None else DEFAULT_TRANSPORT
         self.throttler = throttler # ??? default throttler?
         self.use_ssl = use_ssl
         self.api_host = api_host if api_host is not None else self.DEFAULT_API_HOST
         self.api_version = api_version if api_version is not None else self.DEFAULT_API_VERSION
-        self.default_codec = default_codec or JsonCodec
+        self.default_format = default_format or JsonFormat
         self.headers = dict(headers) if headers is not None else {}
     
     def invoke(self, operation, parameters=None, **kwargs):
@@ -137,33 +137,33 @@ class API(object):
             raise OperationValueError('Operation must be a tuple of two elements.')
         
         if len(operation) == 3:
-            (method, url, codec) = operation
+            (method, url, format) = operation
         elif len(operation) == 2:
             (method, url) = operation
-            codec = None
+            format = None
         else:
             raise OperationValueError('Operation must be a tuple of two elements.')
         
-        # Normalize coded and make it Codec class instance, no matter what it originally is.
-        # If this is a class, then instantiate it. Note it could be non-Codec class too.
-        # If this is something except Codec instance, assume it is a callable/function.
-        if codec is None:
-            codec = self.default_codec
-        if isinstance(codec, type):
-            codec = codec()
-        if not isinstance(codec, Codec):
-            codec = ExternalCodec(codec)
+        # Normalize coded and make it Format class instance, no matter what it originally is.
+        # If this is a class, then instantiate it. Note it could be non-Format class too.
+        # If this is something except Format instance, assume it is a callable/function.
+        if format is None:
+            format = self.default_format
+        if isinstance(format, type):
+            format = format()
+        if not isinstance(format, Format):
+            format = ExternalFormat(format)
         
         # Normalize HTTP requisites (method & url).
         # Make method uppercased verb word.
         # Make url absolute; add format extension if it is not there yet; resolve parameters.
-        extension = getattr(codec, 'extension', None)
+        extension = getattr(format, 'extension', None)
         method = self.normalize_method(method)
         url = self.normalize_url(url, extension)
         url = url % parameters #NB: extra keys will be ignored; missed ones will cause exception.
         
         # The result MUST be in the same order as accepted by Credentials.sign().
-        return Invocation(url, method, parameters, headers, codec)
+        return Invocation(url, method, parameters, headers, format)
     
     def call(self, request):
         """
@@ -184,7 +184,7 @@ class API(object):
         try:
             with contextlib.closing(self.transport(request)) as handle:
                 line = handle.read()
-                data = request.invocation.codec.decode(line)
+                data = request.invocation.format.decode(line)
                 return data
         except TransportError, e:
             self.handle_transport_error(e)
@@ -210,7 +210,7 @@ class API(object):
             with contextlib.closing(self.transport(request)) as handle:
                 while True:
                     line = handle.readline()
-                    data = request.invocation.codec.decode(line)
+                    data = request.invocation.format.decode(line)
                     yield data
         except TransportError, e:
             self.handle_transport_error(e)

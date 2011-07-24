@@ -14,7 +14,7 @@ class OperationValueError(OperationError): pass # not a tuple or bad method/url 
 class ParametersError(Error): pass
 class ParametersCallbackError(ParametersError): pass
 
-class CodecError(Error): pass
-class CodecValueError(Error): pass
-class CodecValueIsNotStringError(CodecValueError): pass
-class ExternalCodecCallableError(CodecError): pass
+class FormatError(Error): pass
+class FormatValueError(Error): pass
+class FormatValueIsNotStringError(FormatValueError): pass
+class ExternalFormatCallableError(FormatError): pass
