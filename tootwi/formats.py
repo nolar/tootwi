@@ -20,17 +20,22 @@ class Format(object):
 
 
 class ExternalFormat(Format):
-    def __init__(self, cb):
+    def __init__(self, cb, extension=None):
         super(ExternalFormat, self).__init__()
         if not callable(cb):
             raise ExternalFormatCallableError("External format requires callable argument.")
-        self.cb = cb
+        self._cb = cb
+        self._extension = extension
     
     def decode(self, data):
         if not isinstance(data, basestring):
             raise FormatValueIsNotStringError("Cannot decode value which is not string.")
         data = data.strip()
-        return None if not data else self.cb(data)
+        return None if not data else self._cb(data)
+    
+    @property
+    def extension(self):
+        return self._extension
 
 
 class FormFormat(Format):

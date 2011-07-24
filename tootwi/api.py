@@ -157,9 +157,8 @@ class API(object):
         # Normalize HTTP requisites (method & url).
         # Make method uppercased verb word.
         # Make url absolute; add format extension if it is not there yet; resolve parameters.
-        extension = getattr(format, 'extension', None)
         method = self.normalize_method(method)
-        url = self.normalize_url(url, extension)
+        url = self.normalize_url(url, format.extension)
         url = url % parameters #NB: extra keys will be ignored; missed ones will cause exception.
         
         # The result MUST be in the same order as accepted by Credentials.sign().
