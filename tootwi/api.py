@@ -9,6 +9,12 @@ from .transports import DEFAULT_TRANSPORT, TransportError
 from .codecs import Codec, ExternalCodec, JsonCodec
 from .errors import CredentialsWrongError, CredentialsValueError, OperationNotPermittedError, OperationNotFoundError, OperationValueError, ParametersCallbackError
 
+# Retrieve version information if available, to use in User-Agent header in API class.
+try:
+    from ._version import __version__
+except ImportError:
+    __version__ = 'unknown'
+
 
 class Invocation(object):
     def __init__(self, url, method, parameters, headers, codec):
@@ -89,7 +95,7 @@ class API(object):
     # Developer can specify their own User-Agent header when constructing a stream
     # or a request; in that case library's User-Agent is appended to the end of 
     # developer's one. Otherwise, library's User-Agent is used alone.
-    USER_AGENT = 'tootwi/0.0' # tootwi is for truly object-oriented twitter
+    USER_AGENT = 'tootwi/%s' % __version__
     
     def __init__(self, transport=None, throttler=None, default_headers=None, default_codec=None, use_ssl=True, api_host='api.twitter.com', api_version='1'):
         super(API, self).__init__()
