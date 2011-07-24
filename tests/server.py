@@ -74,7 +74,7 @@ class HTTPServer(object):
         self.server = SocketServer.TCPServer((self.host, self.port), RequestHandler)
         if self.use_ssl:
             # From http://www.piware.de/2011/01/creating-an-https-server-in-python/
-            # Generate: openssl req -new -x509 -days 3650 -nodes -out test_transports.pem -keyout test_transports.pem
+            # Generate: openssl req -new -x509 -days 3650 -nodes -out server.pem -keyout server.pem
             certfile = os.path.splitext(__file__) + '.pem'
             self.server.socket = ssl.wrap_socket(self.server.socket, server_side=True, certfile=certfile)
         self.thread = threading.Thread(target = self.server.serve_forever, args=(0.1,))
