@@ -48,7 +48,7 @@ class APIInvokeOperationTests(APITest):
         # The exact url value depends on use_ssl, format, etc - ignore them here.
 
 
-class APIInvokeFormatsTest(APITest):
+class APIInvokeFormatsTests(APITest):
     def test_invoke_with_format_absent(self):
         from tootwi.formats import Format, JsonFormat
         invocation = self.api.invoke(FAKE_OPERATION)
@@ -78,7 +78,7 @@ class APIInvokeFormatsTest(APITest):
         self.assertIs(invocation.format._cb, fn)#??? accessing protected member
 
 
-class APIInvokeParametersTest(APITest):
+class APIInvokeParametersTests(APITest):
     def test_invoke_with_no_parameters(self):
         from tootwi.api import Invocation
         from tootwi.formats import Format
@@ -94,7 +94,7 @@ class APIInvokeParametersTest(APITest):
         self.assertEqual(invocation.parameters, {'a':123, 'b':456, 'c':789})
 
 
-class APINormalizationsTest(APITest):
+class APINormalizationTests(APITest):
     
     def test_normalize_method_with_nonstrings(self):
         #??? ValueError or tootwi.errors.FormatValueError?
@@ -141,7 +141,7 @@ class APINormalizationsTest(APITest):
         self.assertEqual(secure_api.normalize_url('proto://server/method', '.ext'), 'proto://server/method.ext')
 
 
-class APIOverallTest(unittest.TestCase):
+class APIOverallTests(unittest.TestCase):
     def test_headers_go_to_invocation(self):
         from tootwi import API
         api = API(headers={'hello':'world', 'empty':''})
