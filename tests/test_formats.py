@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import settings
 import unittest2 as unittest
 
 class ExternalFormatTest(unittest.TestCase):
