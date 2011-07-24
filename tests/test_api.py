@@ -141,5 +141,22 @@ class APINormalizationsTest(APITest):
         self.assertEqual(secure_api.normalize_url('proto://server/method', '.ext'), 'proto://server/method.ext')
 
 
+class APIOverallTest(unittest.TestCase):
+    def test_headers_go_to_invocation(self):
+        from tootwi import API
+        api = API(headers={'hello':'world', 'empty':''})
+        invocation = api.invoke(FAKE_OPERATION)
+        self.assertIn('hello', invocation.headers)
+        self.assertEqual(invocation.headers['hello'], 'world')
+        self.assertIn('empty', invocation.headers)
+        self.assertEqual(invocation.headers['empty'], '')
+    
+    def test_headers_cleaned_from_nones(self):
+        from tootwi import API
+        api = API(headers={'empty':None})
+        invocation = api.invoke(FAKE_OPERATION)
+        self.assertNotIn('empty', invocation.headers)
+
+
 if __name__ == '__main__':
     unittest.main()
