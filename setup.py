@@ -69,7 +69,7 @@ setup(
     license='BSD',
     keywords='twitter api oop object-oriented oauth stream streams',
     description='Twitter API object-oriented library (pure python)',
-    long_description=read('README'),
+    long_description=read('README.md'),
     classifiers=[
         'Development Status :: 1 - Planning',
         'Environment :: Web Environment',
