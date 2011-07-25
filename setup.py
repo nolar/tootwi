@@ -7,6 +7,7 @@ use_setuptools()
 
 # Now, our own stuff.
 import os
+import sys
 from setuptools import setup, find_packages
 from version import get_version
 
@@ -49,6 +50,16 @@ setup(
     # Maintenance and code layout information.
     packages=find_packages(exclude=['tests']),
     test_suite='tests',
+    tests_require=[] + (['unittest2'] if sys.version_info < (3,) else []),
+    install_requires=['oauth2'],
+    #extras_require={
+    #    'oauth-authorization': ['oauth2'],
+    #    'basic-authorization': [],
+    #    'urllib-transport': [],
+    #    'pycurl-transport': ['pycurl'],
+    #    'json-format': [],
+    #    'lxml-format': ['lxml'],
+    #},
     cmdclass={ 'version': version, 'sdist': sdist },
     
     # Descriptive information used for registering.
