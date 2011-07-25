@@ -50,6 +50,19 @@ class HTTPServer(object):
         self.content_body = content_body
         self.encoding = encoding
         
+        # Do not use BaseHTTPServer.HTTPServer here, since it makes hostname lookups,
+        # which is not good on frequest socket binds for each test (we don't need them).
+        class Server(SocketServer.TCPServer):
+            allow_reuse_address = 1
+            def run(self):
+                self.server_bind()
+                self.server_activate()
+                self.serve_forever(0.1)
+                self.server_close()
+                #NB: server_close() is VERY IMPORTANT! SocketServer does not close its
+                #NB: listening socket by default, leaving it open, which causes problems
+                #NB: (such as hangings and errors 10048 WSAEADDRINUSE or 10013 WSAEACCES).
+        
         class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             def log_message(self, format, *args):
                 pass # omit stderr logging
@@ -69,18 +82,19 @@ class HTTPServer(object):
                 postdata = self.rfile.read(int(length)) if length is not None else ''
                 self.send(content_body % postdata if '%s' in content_body else content_body)
         
-        # Do not use BaseHTTPServer.HTTPServer here, since it makes hostname lookup,
-        # which is not good on frequest server launches for each test (it just hangs).
-        self.server = SocketServer.TCPServer((self.host, self.port), RequestHandler)
+        # Now we create socket server and controlling thread in passive mode!
+        # That mean they should not open sockets or execute code here.
+        self.server = Server((self.host, self.port), RequestHandler, bind_and_activate=False)
         if self.use_ssl:
             # From http://www.piware.de/2011/01/creating-an-https-server-in-python/
             # Generate: openssl req -new -x509 -days 3650 -nodes -out server.pem -keyout server.pem
             certfile = os.path.splitext(__file__)[0] + '.pem'
             self.server.socket = ssl.wrap_socket(self.server.socket, server_side=True, certfile=certfile)
-        self.thread = threading.Thread(target = self.server.serve_forever, args=(0.1,))
+        self.thread = threading.Thread(target = self.server.run)
     
     def __enter__(self):
         self.thread.start()
+        return self
     
     def __exit__(self, exc_type, exc_info, exc_bt):
         self.server.shutdown()
