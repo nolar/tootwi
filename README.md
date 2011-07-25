@@ -1,9 +1,9 @@
-# ABOUT
+## ABOUT
 
 TooTwi is a python library for Twitter API, intended to be truly object-oriented,
 extendible and fast, yet supporting all Twitter API methods, current and future.
 
-# FEATURES
+## FEATURES
 
 * Streams iterators.
 * OAuth and basic auth support (still allowed in streams).
@@ -11,11 +11,9 @@ extendible and fast, yet supporting all Twitter API methods, current and future.
 * Easyness of inheritance and enhancement.
 
 
-# CODE SAMPLES
+## CODE SAMPLES
 
-Working code samples are in test-auth.py, test-models.py, and test-stream.py.
-
-## Three-stage Twitter OAuth PIN authentication:
+#### Three-stage Twitter OAuth PIN authentication:
 
 ```python
     from tootwi import ApplicationCredentials
@@ -38,7 +36,7 @@ Working code samples are in test-auth.py, test-models.py, and test-stream.py.
 ```
 
 
-## Models:
+#### Models:
 
 ```python
     from tootwi import TokenCredentials
@@ -59,7 +57,7 @@ Working code samples are in test-auth.py, test-models.py, and test-stream.py.
 ```
 
 
-## Streams:
+#### Streams:
 
 ```python
     from tootwi import TokenCredentials
@@ -77,7 +75,7 @@ Working code samples are in test-auth.py, test-models.py, and test-stream.py.
 
 
 
-# HISTORY AND STATUS
+## HISTORY AND STATUS
 
 This library is a byproduct of a few experiments with Twitter API and streams.
 There is a library with even more features and API coverage: "tweepy" (http://tweepy.github.com/).
