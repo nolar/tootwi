@@ -289,4 +289,4 @@ class BasicCredentials(Credentials):
             'Authorization': 'Basic ' + base64.b64encode('%s:%s' % (self.username, self.password)),
         })
         
-        return SignedRequest(invocation, url=url, method=method, headers=headers, postdata=None)
+        return SignedRequest(invocation, url=invocation.url, method=invocation.method, headers=headers, postdata=None)
