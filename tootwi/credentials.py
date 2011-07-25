@@ -117,15 +117,8 @@ class OAuthCredentials(Credentials):
         
         # Sign the request. It is good idea to keep all oauth call here.
         signature_method = oauth.SignatureMethod_HMAC_SHA1()
-        if self.consumer_key is None or self.consumer_secret is None:
-            consumer = None
-        else:
-            consumer = oauth.Consumer(self.consumer_key, self.consumer_secret)
-        #!!! this token difference must be implemented in overriden descendants, rather than with "if".
-        if self.token_key is None or self.token_secret is None:
-            token = None
-        else:
-            token = oauth.Token(self.token_key, self.token_secret)
+        consumer = None if None in (self.consumer_key, self.consumer_secret) else oauth.Consumer(self.consumer_key, self.consumer_secret)
+        token    = None if None in (self.   token_key, self.   token_secret) else oauth.Token   (self.   token_key, self.   token_secret)
         request = oauth.Request(method=method, url=url, parameters=parameters)
         request.sign_request(signature_method, consumer, token)
         
