@@ -55,13 +55,13 @@ class SignedRequest(object):
     These is no need to derive this class, since this one is usually enough.
     """
     
-    def __init__(self, invocation, url, method, headers, postdata):
+    def __init__(self, url, method, headers, postdata, format):
         super(SignedRequest, self).__init__()
-        self.invocation = invocation
         self._url = url
         self._method = method
         self._headers = headers
         self._postdata = postdata
+        self._format = format
     
     @property
     def url(self):
@@ -78,6 +78,10 @@ class SignedRequest(object):
     @property
     def postdata(self):
         return self._postdata
+    
+    @property
+    def format(self):
+        return self._format
 
 
 class API(object):
@@ -183,7 +187,7 @@ class API(object):
         try:
             with contextlib.closing(self.transport(request)) as handle:
                 line = handle.read()
-                data = request.invocation.format.decode(line)
+                data = request.format.decode(line)
                 return data
         except TransportError, e:
             self.handle_transport_error(e)
@@ -209,7 +213,7 @@ class API(object):
             with contextlib.closing(self.transport(request)) as handle:
                 while True:
                     line = handle.readline()
-                    data = request.invocation.format.decode(line)
+                    data = request.format.decode(line)
                     yield data
         except TransportError, e:
             self.handle_transport_error(e)

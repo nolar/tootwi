@@ -143,7 +143,7 @@ class OAuthCredentials(Credentials):
 #           headers.update(request.to_header())
         
         # Return signed read-only request object as required by credentials protocol.
-        return SignedRequest(invocation, url=url, method=method, headers=headers, postdata=postdata)
+        return SignedRequest(url=url, method=method, headers=headers, postdata=postdata, format=invocation.format)
 
 
 class ApplicationCredentials(OAuthCredentials):
@@ -289,4 +289,4 @@ class BasicCredentials(Credentials):
             'Authorization': 'Basic ' + base64.b64encode('%s:%s' % (self.username, self.password)),
         })
         
-        return SignedRequest(invocation, url=invocation.url, method=invocation.method, headers=headers, postdata=None)
+        return SignedRequest(url=invocation.url, method=invocation.method, headers=headers, postdata=None, format=invocation.format)
