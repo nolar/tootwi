@@ -17,7 +17,7 @@ and possible in future.
 ## CODE SAMPLES
 
 Here are three code samples for sneak preview.
-More code samples can be found in [tree/master/examples](examples) folder.
+More code samples can be found in [examples](tree/master/examples) folder.
 
 
 #### Three-stage Twitter OAuth authentication:
