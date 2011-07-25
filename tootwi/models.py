@@ -120,6 +120,7 @@ class Model(object):
         self.api = api
         self.data = data #??? rename all "data" to "values". what about lists?
         self.params = kwargs
+        self.loaded = False
 
     def __repr__(self):
         """
@@ -170,8 +171,9 @@ class Model(object):
         if self.LOAD_OPERATION is None:
             raise NotImplemented()
         #!!! exceptions
-        if self.data is None:
+        if not self.loaded:
             self.data = self.api.call(self.LOAD_OPERATION, self.params)
+            self.loaded = True #NB: After the data are loaded, for the case of API error.
         return self
 
 
