@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import unittest2 as unittest
+import contextlib
 from server import HTTPServer
 
 
@@ -21,52 +22,44 @@ class urllib2TransportTests(unittest.TestCase):
     def test_read_on_https(self):
         pattern = 'hello world!\nthis is a test server.'
         with HTTPServer(port=8888, use_ssl=True, content_body=pattern):
-            stream = self.transport(self.makeRequest('https://localhost:8888/'))
-            self.assertFileProtocol(stream)
-            
-            content = stream.read()
-            self.assertIsInstance(content, basestring)
-            self.assertTrue(content, pattern)
-            
-            stream.close()
+            with contextlib.closing(self.transport(self.makeRequest('https://localhost:8888/'))) as stream:
+                self.assertFileProtocol(stream)
+                
+                content = stream.read()
+                self.assertIsInstance(content, basestring)
+                self.assertTrue(content, pattern)
     
     def test_read_on_http(self):
         pattern = 'hello world!\nthis is a test server.'
         with HTTPServer(port=8888, content_body=pattern):
-            stream = self.transport(self.makeRequest('http://localhost:8888/'))
-            self.assertFileProtocol(stream)
-            
-            content = stream.read()
-            self.assertIsInstance(content, basestring)
-            self.assertEqual(content, pattern)
-            
-            stream.close()
+            with contextlib.closing(self.transport(self.makeRequest('http://localhost:8888/'))) as stream:
+                self.assertFileProtocol(stream)
+                
+                content = stream.read()
+                self.assertIsInstance(content, basestring)
+                self.assertEqual(content, pattern)
     
     def test_readlines_on_http(self):
         pattern = ['hello world!\n', 'this is a test server.']
         with HTTPServer(port=8888, content_body=''.join(pattern)):
-            stream = self.transport(self.makeRequest('http://localhost:8888/'))
-            self.assertFileProtocol(stream)
-            
-            content = stream.readlines()
-            self.assertIsInstance(content, list)
-            self.assertListEqual(content, pattern)
-            
-            stream.close()
+            with contextlib.closing(self.transport(self.makeRequest('http://localhost:8888/'))) as stream:
+                self.assertFileProtocol(stream)
+                
+                content = stream.readlines()
+                self.assertIsInstance(content, list)
+                self.assertListEqual(content, pattern)
     
     def test_post(self):
         pattern = 'POST RESPONSE: %s'
         postdata = 'hello world'
         expected = 'POST RESPONSE: hello world'
         with HTTPServer(port=8888, content_body=pattern):
-            stream = self.transport(self.makeRequest('http://localhost:8888/', 'POST', postdata=postdata))
-            self.assertFileProtocol(stream)
-            
-            content = stream.read()
-            self.assertIsInstance(content, basestring)
-            self.assertEqual(content, expected)
-            
-            stream.close()
+            with contextlib.closing(self.transport(self.makeRequest('http://localhost:8888/', 'POST', postdata=postdata))) as stream:
+                self.assertFileProtocol(stream)
+                
+                content = stream.read()
+                self.assertIsInstance(content, basestring)
+                self.assertEqual(content, expected)
     
     def test_transport_error_with_nonurl(self):
         from tootwi.transports import TransportError
