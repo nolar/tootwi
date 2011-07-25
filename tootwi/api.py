@@ -221,10 +221,17 @@ class API(object):
         This is API's responsibility to normalize all values to protocol values, since
         these are API's restrictions and convention; also, the API owns the settings.
         """
-        return unicode(method).strip().upper()
+        if not isinstance(method, basestring) or not method.strip():
+            raise ValueError("Method is expected to be a non-empty string.")
+        return method.strip().upper()
     
     def normalize_url(self, url, extension=None):
-        # This method is alost used in TemporaryCredentials.url building.
+        # This method is also used in TemporaryCredentials.url building.
+        
+        if not isinstance(url, basestring) or not url.strip():
+            raise ValueError("URL is expected to be a non-empty string.")
+        if extension is not None and not isinstance(extension, basestring):
+            raise ValueError("Extension is expected to be a string or None.")
         
         #NB: We do not cut extension if it is already in the url.
         #NB: This is a problem of developer who specifies methods such a way.
