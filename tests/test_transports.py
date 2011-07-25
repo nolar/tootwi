@@ -62,20 +62,18 @@ class urllib2TransportTests(unittest.TestCase):
                 self.assertEqual(content, expected)
     
     def test_transport_error_with_nonurl(self):
-        from tootwi.transports import TransportError
-        with self.assertRaises(TransportError):
+        with self.assertRaises(ValueError):
             self.transport(self.makeRequest('not a url at all'))
     
     def test_transport_error_with_unexistent_domain(self):
-        from tootwi.transports import TransportError
-        with self.assertRaises(TransportError):
+        with self.assertRaises(EnvironmentError):
             self.transport(self.makeRequest('http://unexistent.domain/'))
     
     def test_transport_error_with_specified_code(self):
-        from tootwi.transports import TransportError
-        with HTTPServer(port=8888, status_code=567):
-            with self.assertRaises(TransportError):#!!! check for 567 code and messages
-                self.transport(self.makeRequest('http://localost:8888/'))
+        from tootwi.transports import TransportServerError
+        with HTTPServer(port=8888, status_code=567, status_text="TEST FAILED"):
+            with self.assertRaises(TransportServerError):#!!! check for 567 code and messages
+                self.transport(self.makeRequest('http://localhost:8888/'))
     
     def test_bufsize_hack_disabled(self):
         pass#!!!TODO

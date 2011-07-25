@@ -29,10 +29,17 @@ __all__ = ['urllib2Transport', 'DEFAULT_TRANSPORT']
 #
 
 class TransportError(Exception):
-    def __init__(self, msg, http_code, http_text):
-        super(TransportError, self).__init__(msg)
-        self.code =     int(http_code if http_code else 0 ) 
-        self.text = unicode(http_text if http_text else '').strip()
+    pass
+
+class TransportServerError(TransportError):
+    """
+    Transport works fine. Network works fine too.
+    But server had failed, and gave us its HTTP status.
+    """
+    def __init__(self, msg, code, text):
+        super(TransportServerError, self).__init__(msg)
+        self.code =     int(code if code else 0 )
+        self.text = unicode(text if text else '').strip()
 
 
 class File(object):
@@ -46,6 +53,7 @@ class File(object):
         raise NotImplemented()
     def read(self, length=None):
         raise NotImplemented()
+
 
 class Transport(object):
     """
@@ -114,7 +122,13 @@ class urllib2Transport(Transport):
             except urllib2.HTTPError, e:
                 code = e.getcode()
                 text = e.read()
-                raise TransportError(text, code, text)#???!!!
+                raise TransportServerError(unicode(e), code, text)
+            ## It is not clear what to do with "external" errors. Now, we pass them by as-is.
+            #except urllib2.URLError, e:#??? Use just an EnvironmentError?
+            #    raise TransportConnectionError(unicode(e))
+            #except ValueError, e:
+            #    # Happens when url is not an url (urllib2:244 in get_type()).
+            #    raise TransportConnectionError(unicode(e))
         
         return handle
     
