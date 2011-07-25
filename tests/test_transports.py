@@ -12,7 +12,7 @@ class urllib2TransportTests(unittest.TestCase):
         self.assertTrue(hasattr(f, 'close') and callable(f.close))
     
     def makeRequest(self, url, method='GET', postdata=None):
-        from tootwi.api import SignedRequest as WebRequest#!!!
+        from tootwi.api import WebRequest
         return WebRequest(url, method, headers={'User-Agent':'tootwi-tests'}, postdata=postdata, format=None)
     
     def setUp(self):

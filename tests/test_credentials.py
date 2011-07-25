@@ -102,10 +102,10 @@ class CommonCredentialsMixin(object):
         self.assertIs(self.credentials.api, api)
     
     def test_sign_works_at_all(self):
-        from tootwi.api import SignedRequest
+        from tootwi.api import WebRequest
         self.create_credentials()
         request = self.credentials.sign(self.credentials.api.invoke((' gEt ', '/method')))
-        self.assertIsInstance(request, SignedRequest)
+        self.assertIsInstance(request, WebRequest)
         self.assertEqual('GET', request.method)
         self.assertIn('api.twitter.com/method', request.url)
         #??? how to check for auth parameter, that can be in query/postdata/headers?

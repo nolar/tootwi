@@ -46,7 +46,7 @@ class Invocation(object):
         return self._format
 
 
-class SignedRequest(object):
+class WebRequest(object):
     """
     Signed request, literally. It is created in credentials instance as
     a result of signing request parameters with user credentials. Since
@@ -56,7 +56,7 @@ class SignedRequest(object):
     """
     
     def __init__(self, url, method, headers, postdata, format):
-        super(SignedRequest, self).__init__()
+        super(WebRequest, self).__init__()
         self._url = url
         self._method = method
         self._headers = headers

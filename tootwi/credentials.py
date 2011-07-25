@@ -27,7 +27,7 @@ or its method is called. There should be no dependency imports in this module it
 since not all of them might be installed (and not all of them are really required).
 """
 
-from .api import SignedRequest, API
+from .api import WebRequest, API
 from .models import Account
 from .formats import FormFormat
 
@@ -143,7 +143,7 @@ class OAuthCredentials(Credentials):
 #           headers.update(request.to_header())
         
         # Return signed read-only request object as required by credentials protocol.
-        return SignedRequest(url=url, method=method, headers=headers, postdata=postdata, format=invocation.format)
+        return WebRequest(url=url, method=method, headers=headers, postdata=postdata, format=invocation.format)
 
 
 class ApplicationCredentials(OAuthCredentials):
@@ -289,4 +289,4 @@ class BasicCredentials(Credentials):
             'Authorization': 'Basic ' + base64.b64encode('%s:%s' % (self.username, self.password)),
         })
         
-        return SignedRequest(url=invocation.url, method=invocation.method, headers=headers, postdata=None, format=invocation.format)
+        return WebRequest(url=invocation.url, method=invocation.method, headers=headers, postdata=None, format=invocation.format)
