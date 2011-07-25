@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-import unittest2 as unittest
+try:
+    import unittest2 as unittest # python-2 external dependency
+except:
+    import unittest # python-3 native module
+
 
 FAKE_OPERATION = ('GET', '/nowhere/')
 

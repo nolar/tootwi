@@ -21,7 +21,7 @@ since not all of them might be installed (and not all of them are really require
 """
 
 
-__all__ = ['urllib2Transport', 'DEFAULT_TRANSPORT']
+__all__ = ['urllibTransport', 'DEFAULT_TRANSPORT']
 
 
 #
@@ -73,10 +73,10 @@ class Transport(object):
         raise NotImplemented()
 
 #
-# Transports via urllib2.
+# Transports via urllib (supports Python-2 and Python-3 modules).
 #
 
-class urllib2Transport(Transport):
+class urllibTransport(Transport):
     """
     Transport implementation with urllib2 library. Returns library's native
     file-like object, since it conforms to the protocol of the File class.
@@ -84,7 +84,7 @@ class urllib2Transport(Transport):
     
     class SocketBufSizeHack(object):
         def __init__(self, bufsize):
-            super(urllib2Transport.SocketBufSizeHack, self).__init__()
+            super(urllibTransport.SocketBufSizeHack, self).__init__()
             self.bufsize = bufsize
         
         def __enter__(self):
@@ -104,27 +104,30 @@ class urllib2Transport(Transport):
                 socket._fileobject.default_bufsize = self.old_default_bufsize
     
     def __init__(self, bufsize=None):
-        super(urllib2Transport, self).__init__()
+        super(urllibTransport, self).__init__()
         self.bufsize = bufsize
     
     def __call__(self, request):
         # On-demand import to avoid errors when this connection is not used.
-        import urllib2, urllib
+        try:
+            from urllib.request import Request, HTTPError, urlopen # python-3
+        except ImportError:
+            from urllib2 import Request, HTTPError, urlopen # python-2
         
         with self.SocketBufSizeHack(self.bufsize):
             # HTTP method will be automatically choosen based on presence or absence of the postdata.
             # Errors are re-raised almost straightforwardly (urllib2 uses exceptions for HTTP codes).
             try:
-                req = urllib2.Request(request.url,
+                req = Request(request.url,
                     request.postdata if request.method=='POST' else None,
                     headers=request.headers)
-                handle = urllib2.urlopen(req)
-            except urllib2.HTTPError, e:
+                handle = urlopen(req)
+            except HTTPError, e:
                 code = e.getcode()
                 text = e.read()
                 raise TransportServerError(unicode(e), code, text)
             ## It is not clear what to do with "external" errors. Now, we pass them by as-is.
-            #except urllib2.URLError, e:#??? Use just an EnvironmentError?
+            #except URLError, e:#??? Use just an EnvironmentError?
             #    raise TransportConnectionError(unicode(e))
             #except ValueError, e:
             #    # Happens when url is not an url (urllib2:244 in get_type()).
@@ -134,7 +137,10 @@ class urllib2Transport(Transport):
     
     @classmethod
     def check(cls):
-        import urllib2, urllib
+        try:
+            from urllib.request import Request, HTTPError, urlopen # python-3
+        except ImportError:
+            from urllib2 import Request, HTTPError, urlopen # python-2
 
 #
 # Transports via httplib.
@@ -157,7 +163,7 @@ class pycurlTransport(Transport):
 # not the transport class. Each and every API call performed with no transport
 # specified will use this one.
 #
-for transport_class in [urllib2Transport, httplibTransport, pycurlTransport]:
+for transport_class in [urllibTransport, httplibTransport, pycurlTransport]:
     try:
         DEFAULT_TRANSPORT = transport_class()
         break

@@ -1,6 +1,10 @@
 #!/usr/bin/env python
+try:
+    import unittest2 as unittest # python-2 external dependency
+except:
+    import unittest # python-3 native module
+
 import settings
-import unittest2 as unittest
 
 
 class OAuthRequestAuthorizationScenarioTests(unittest.TestCase):

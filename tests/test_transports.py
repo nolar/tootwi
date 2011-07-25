@@ -1,10 +1,14 @@
 #!/usr/bin/env python
-import unittest2 as unittest
+try:
+    import unittest2 as unittest # python-2 external dependency
+except:
+    import unittest # python-3 native module
+
 import contextlib
 from server import HTTPServer
 
 
-class urllib2TransportTests(unittest.TestCase):
+class urllibTransportTests(unittest.TestCase):
     def assertFileProtocol(self, f):
         self.assertTrue(hasattr(f, 'read') and callable(f.read))
         self.assertTrue(hasattr(f, 'readline') and callable(f.readline))
@@ -16,8 +20,8 @@ class urllib2TransportTests(unittest.TestCase):
         return WebRequest(url, method, headers={'User-Agent':'tootwi-tests'}, postdata=postdata, format=None)
     
     def setUp(self):
-        from tootwi.transports import urllib2Transport
-        self.transport = urllib2Transport()
+        from tootwi.transports import urllibTransport
+        self.transport = urllibTransport()
     
     def test_read_on_https(self):
         pattern = 'hello world!\nthis is a test server.'
